@@ -1,4 +1,17 @@
 {
-  "name": "nebula-art",
-  "slug": "nebula-art"
+  "expo": {
+    "name": "nebula-art",
+    "slug": "nebula-art",
+    "version": "1.0.0",
+    "platforms": ["ios", "android", "web"],
+    "web": {
+      "bundler": "webpack"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "bundleIdentifier": "com.anonymous.nebula-art"
+    }
+  }
 }
