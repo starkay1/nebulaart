@@ -39,7 +39,7 @@ export const ArtistPage: React.FC<any> = ({ route, navigation }) => {
     >
       <View style={styles.artworkImage}>
         <Image 
-          source={require('../../public/images/artworks/autumn_herding.jpg')}
+          source={{ uri: item.image }}
           style={styles.artworkGradient}
           resizeMode="cover"
         />
