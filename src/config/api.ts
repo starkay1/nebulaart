@@ -94,13 +94,25 @@ export class ApiClient {
       const response = await fetch(url, config);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`API Error ${response.status}:`, errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
       
-      const data = await response.json();
-      return data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        return data;
+      } else {
+        const text = await response.text();
+        return text as unknown as T;
+      }
     } catch (error) {
       console.error('API request failed:', error);
+      // 返回一个默认值而不是抛出错误，避免前端崩溃
+      if (endpoint === API_CONFIG.ENDPOINTS.HEALTH) {
+        return { status: 'error', error: (error as Error).message } as unknown as T;
+      }
       throw error;
     }
   }

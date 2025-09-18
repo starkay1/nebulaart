@@ -1,6 +1,5 @@
 import React, { Component, ReactNode } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme/theme';
 
 interface Props {
@@ -10,58 +9,69 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error: Error | null;
+  error?: Error;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: any) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    
+    // 在开发环境中显示更多信息
+    if (__DEV__) {
+      console.error('Error details:', {
+        error: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+      });
+    }
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: undefined });
   };
 
   render() {
     if (this.state.hasError) {
+      // 如果提供了自定义的 fallback，使用它
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
       return (
         <View style={styles.container}>
-          <LinearGradient
-            colors={[...theme.gradients.primary]}
-            style={styles.errorIcon}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <Text style={styles.errorIconText}>!</Text>
-          </LinearGradient>
-          
-          <Text style={styles.errorTitle}>出现了一些问题</Text>
-          <Text style={styles.errorMessage}>
-            应用遇到了意外错误，请稍后重试
+          <Text style={styles.title}>出现了一些问题</Text>
+          <Text style={styles.message}>
+            应用遇到了意外错误，请尝试重新加载页面。
           </Text>
-          
-          <TouchableOpacity style={styles.retryButton} onPress={this.handleRetry}>
-            <LinearGradient
-              colors={[...theme.gradients.primary]}
-              style={styles.retryButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Text style={styles.retryButtonText}>重试</Text>
-            </LinearGradient>
+          {__DEV__ && this.state.error && (
+            <Text style={styles.errorDetails}>
+              错误详情: {this.state.error.message}
+            </Text>
+          )}
+          <TouchableOpacity
+            style={styles.button}
+            onPress={this.handleRetry}
+          >
+            <Text style={styles.buttonText}>重试</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.secondaryButton]}
+            onPress={() => {
+              if (typeof window !== 'undefined') {
+                window.location.reload();
+              }
+            }}
+          >
+            <Text style={[styles.buttonText, styles.secondaryButtonText]}>刷新页面</Text>
           </TouchableOpacity>
         </View>
       );
@@ -76,47 +86,51 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: theme.spacing.xl,
+    padding: 20,
     backgroundColor: theme.colors.background,
   },
-  errorIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-  },
-  errorIconText: {
-    fontSize: theme.fontSize['3xl'],
-    fontWeight: theme.fontWeight.bold,
-    color: 'white',
-  },
-  errorTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-    textAlign: 'center',
+    marginBottom: 16,
   },
-  errorMessage: {
-    fontSize: theme.fontSize.md,
+  message: {
+    fontSize: 16,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: theme.lineHeight.relaxed,
-    marginBottom: theme.spacing.xl,
+    marginBottom: 24,
+    lineHeight: 24,
   },
-  retryButton: {
-    borderRadius: theme.borderRadius.lg,
-    overflow: 'hidden',
+  errorDetails: {
+    fontSize: 12,
+    color: '#FF6B6B',
+    textAlign: 'center',
+    marginBottom: 16,
+    padding: 8,
+    backgroundColor: '#FFF5F5',
+    borderRadius: 4,
+    fontFamily: 'monospace',
   },
-  retryButtonGradient: {
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.md,
+  button: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 12,
   },
-  retryButtonText: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.semibold,
-    color: 'white',
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  secondaryButtonText: {
+    color: theme.colors.primary,
   },
 });

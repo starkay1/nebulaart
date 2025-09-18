@@ -291,7 +291,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const mockStories: Story[] = [
       {
         id: 'story1',
-        user: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
+        user: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=9' },
         hasUpdate: true,
         gradient: ['#667eea', '#764ba2'],
       },
@@ -303,7 +303,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       },
       {
         id: 'story3',
-        user: { id: 'artist2', name: '王正春', avatar: './images/artists/wangzhengchun_avatar.jpg' },
+        user: { id: 'artist2', name: '王正春', avatar: 'https://picsum.photos/120/120?random=2' },
         hasUpdate: false,
         gradient: ['#f093fb', '#f5576c'],
       },
@@ -314,8 +314,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork1',
         title: '秋色',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/autumn_colors.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=1' },
+        image: 'https://picsum.photos/400/600?random=101',
         gradient: ['#8B4513', '#D2691E'],
         stats: { likes: 2800, comments: 125 },
         isLiked: false,
@@ -324,8 +324,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork2',
         title: '蜀山韵味 I',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/shu_mountains_charm_1.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=1' },
+        image: 'https://picsum.photos/400/600?random=102',
         gradient: ['#2F4F4F', '#708090'],
         stats: { likes: 2100, comments: 89 },
         isLiked: false,
@@ -334,8 +334,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork3',
         title: '青山韵律',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/rhythm_of_green_hills.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=1' },
+        image: 'https://picsum.photos/400/600?random=103',
         gradient: ['#228B22', '#32CD32'],
         stats: { likes: 1950, comments: 67 },
         isLiked: false,
@@ -344,8 +344,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork4',
         title: '秋牧',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/morning_charm.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=1' },
+        image: 'https://picsum.photos/400/600?random=104',
         gradient: ['#CD853F', '#DEB887'],
         stats: { likes: 1680, comments: 45 },
         isLiked: false,
@@ -354,8 +354,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork5',
         title: '秋牧',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/autumn_herding.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=4' },
+        image: 'https://picsum.photos/400/600?random=105',
         gradient: ['#CD853F', '#DEB887'],
         stats: { likes: 1580, comments: 42 },
         isLiked: false,
@@ -364,8 +364,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork6',
         title: '蜀山秋韵',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/autumn_rhythm_shu_mountains.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=8' },
+        image: 'https://picsum.photos/400/600?random=106',
         gradient: ['#8B4513', '#CD853F'],
         stats: { likes: 1750, comments: 55 },
         isLiked: false,
@@ -374,8 +374,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork7',
         title: '秋情',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/autumn_sentiment.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=10' },
+        image: 'https://picsum.photos/400/600?random=107',
         gradient: ['#B8860B', '#DAA520'],
         stats: { likes: 1920, comments: 73 },
         isLiked: false,
@@ -384,8 +384,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork8',
         title: '蜀山秋色',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/autumn_in_shu_mountains.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=8' },
+        image: 'https://picsum.photos/400/600?random=108',
         gradient: ['#8B4513', '#A0522D'],
         stats: { likes: 2050, comments: 88 },
         isLiked: false,
@@ -394,8 +394,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork9',
         title: '归蜀山',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/return_to_shu_mountains.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=4' },
+        image: 'https://picsum.photos/400/600?random=109',
         gradient: ['#556B2F', '#6B8E23'],
         stats: { likes: 1650, comments: 51 },
         isLiked: false,
@@ -404,8 +404,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork10',
         title: '蜀山韵味 II',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/shu_mountains_charm_2.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=5' },
+        image: 'https://picsum.photos/400/600?random=110',
         gradient: ['#4682B4', '#87CEEB'],
         stats: { likes: 1850, comments: 72 },
         isLiked: false,
@@ -414,8 +414,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork11',
         title: '蜀江行',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/traveling_shu_river.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=10' },
+        image: 'https://picsum.photos/400/600?random=111',
         gradient: ['#20B2AA', '#48D1CC'],
         stats: { likes: 1780, comments: 64 },
         isLiked: false,
@@ -424,8 +424,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork12',
         title: '无题 I',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/untitled_1.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=9' },
+        image: 'https://picsum.photos/400/600?random=112',
         gradient: ['#708090', '#778899'],
         stats: { likes: 1420, comments: 38 },
         isLiked: false,
@@ -434,8 +434,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork13',
         title: '无题 II',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/untitled_2.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=2' },
+        image: 'https://picsum.photos/400/600?random=113',
         gradient: ['#696969', '#808080'],
         stats: { likes: 1320, comments: 29 },
         isLiked: false,
@@ -444,8 +444,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork14',
         title: '无题 III',
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/untitled_3.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=3' },
+        image: 'https://picsum.photos/400/600?random=114',
         gradient: ['#2F4F4F', '#708090'],
         stats: { likes: 1580, comments: 47 },
         isLiked: false,
@@ -455,8 +455,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork15',
         title: '蜀山春曲 136×68 (2025年)',
-        artist: { id: 'artist2', name: '王正春', avatar: './images/artists/wangzhengchun_avatar.jpg' },
-        image: './images/artworks/wangzhengchun_1.jpg',
+        artist: { id: 'artist2', name: '王正春', avatar: 'https://picsum.photos/120/120?random=2' },
+        image: 'https://picsum.photos/400/600?random=115',
         gradient: ['#4169E1', '#6495ED'],
         stats: { likes: 1420, comments: 38 },
         isLiked: false,
@@ -465,8 +465,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork16',
         title: '山高水长 68×36 (2025年)',
-        artist: { id: 'artist2', name: '王正春', avatar: './images/artists/wangzhengchun_avatar.jpg' },
-        image: './images/artworks/wangzhengchun_2.jpg',
+        artist: { id: 'artist2', name: '王正春', avatar: 'https://picsum.photos/120/120?random=9' },
+        image: 'https://picsum.photos/400/600?random=116',
         gradient: ['#DC143C', '#FF6347'],
         stats: { likes: 1180, comments: 29 },
         isLiked: false,
@@ -475,8 +475,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork17',
         title: '山水情韵 (2024年)',
-        artist: { id: 'artist2', name: '王正春', avatar: './images/artists/wangzhengchun_avatar.jpg' },
-        image: './images/artworks/wangzhengchun_3.jpg',
+        artist: { id: 'artist2', name: '王正春', avatar: 'https://picsum.photos/120/120?random=3' },
+        image: 'https://picsum.photos/400/600?random=117',
         gradient: ['#228B22', '#32CD32'],
         stats: { likes: 1350, comments: 42 },
         isLiked: false,
@@ -485,8 +485,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork18',
         title: '云山雾海 (2023年)',
-        artist: { id: 'artist2', name: '王正春', avatar: './images/artists/wangzhengchun_avatar.jpg' },
-        image: './images/artworks/wangzhengchun_4.jpg',
+        artist: { id: 'artist2', name: '王正春', avatar: 'https://picsum.photos/120/120?random=10' },
+        image: 'https://picsum.photos/400/600?random=118',
         gradient: ['#9370DB', '#BA55D3'],
         stats: { likes: 1620, comments: 51 },
         isLiked: false,
@@ -495,8 +495,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork19',
         title: '金秋山居 (2022年)',
-        artist: { id: 'artist2', name: '王正春', avatar: './images/artists/wangzhengchun_avatar.jpg' },
-        image: './images/artworks/wangzhengchun_5.jpg',
+        artist: { id: 'artist2', name: '王正春', avatar: 'https://picsum.photos/120/120?random=4' },
+        image: 'https://picsum.photos/400/600?random=119',
         gradient: ['#FF4500', '#FF8C00'],
         stats: { likes: 1890, comments: 67 },
         isLiked: false,
@@ -505,8 +505,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork20',
         title: '春山如黛 (2021年)',
-        artist: { id: 'artist2', name: '王正春', avatar: './images/artists/wangzhengchun_avatar.jpg' },
-        image: './images/artworks/wangzhengchun_6.jpg',
+        artist: { id: 'artist2', name: '王正春', avatar: 'https://picsum.photos/120/120?random=8' },
+        image: 'https://picsum.photos/400/600?random=120',
         gradient: ['#00CED1', '#40E0D0'],
         stats: { likes: 1450, comments: 35 },
         isLiked: false,
@@ -518,7 +518,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artist1',
         name: '杨西屏',
-        avatar: './images/artists/yangxiping_avatar.jpg',
+        avatar: 'https://picsum.photos/120/120?random=6',
         location: '中国水墨画家 · 成都',
         bio: '杨西屏，一九五八年生于四川省成都市，现为中原美术学院特聘教授，中国民主建国会民建中央画院院士，中央民建画院四川省分院副院长，香港职业书画家协会副主席，成都市民建书画院副院长。作品多次参加国内外美展并两次荣获中国文联批准的《中国百杰画家》称号，在迎上海世博会画展中被六家单位评审为《杰出书画艺术家最高荣誉成就奖》荣誉称号，作品入选庆祝中华人民共和国成立六十周年中国书画名家作品展，并荣获一等奖。',
         stats: { artworks: 14, followers: 2800, likes: 8900, curations: 5 },
@@ -527,7 +527,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artist2',
         name: '王正春',
-        avatar: './images/artists/wangzhengchun_avatar.jpg',
+        avatar: 'https://picsum.photos/120/120?random=2',
         location: '花鸟山水画家 · 成都',
         bio: '王正春，1957年生于成都，先后在成都画院和朱常棣艺术工作室研修花鸟画和山水画。作品多次参加全国及省市美展并有获奖，曾八次入选中国美协主办的大展。2015年作品《金色羌山》获"三江源杯"全国书画展金奖。四川省山水画会委员，四川省美协会员，成都市美协理事，《中国书画報》特聘画师，蜀都书画院副秘书长。',
         stats: { artworks: 6, followers: 1650, likes: 5600, curations: 3 },
@@ -547,7 +547,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         followers: 2800,
         following: 120,
         artworks: 14,
-        avatar: './images/artists/yangxiping_avatar.jpg',
+        avatar: 'https://picsum.photos/120/120?random=2',
         bio: '杨西屏，一九五八年生于四川省成都市，现为中原美术学院特聘教授，中国民主建国会民建中央画院院士，中央民建画院四川省分院副院长，香港职业书画家协会副主席，成都市民建书画院副院长。作品多次参加国内外美展并两次荣获中国文联批准的《中国百杰画家》称号，在迎上海世博会画展中被六家单位评审为《杰出书画艺术家最高荣誉成就奖》荣誉称号，作品入选庆祝中华人民共和国成立六十周年中国书画名家作品展，并荣获一等奖。',
         followersList: ['user1'], // 当前用户关注了杨西屏
         followingList: [],
@@ -561,7 +561,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         followers: 1650,
         following: 85,
         artworks: 6,
-        avatar: './images/artists/wangzhengchun_avatar.jpg',
+        avatar: 'https://picsum.photos/120/120?random=6',
         bio: '王正春，1957年生于成都，先后在成都画院和朱常棣艺术工作室研修花鸟画和山水画。作品多次参加全国及省市美展并有获奖，曾八次入选中国美协主办的大展。2015年作品《金色羌山》获"三江源杯"全国书画展金奖。四川省山水画会委员，四川省美协会员，成都市美协理事，《中国书画報》特聘画师，蜀都书画院副秘书长。',
         followersList: [],
         followingList: ['user1'], // 王正春关注了当前用户
@@ -575,9 +575,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         curator: {
           id: 'curator1',
           name: '陈明',
-          avatar: './images/artists/yangxiping_avatar.jpg'
+          avatar: 'https://picsum.photos/120/120?random=10'
         },
-        coverImage: './images/curations/curation1.jpg',
+        coverImage: 'https://picsum.photos/400/300?random=122',
         artworks: ['artwork1', 'artwork2'],
         views: 1200,
         likes: 89,
@@ -591,9 +591,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         curator: {
           id: 'curator2',
           name: '林小雨',
-          avatar: './images/artists/wangzhengchun_avatar.jpg'
+          avatar: 'https://picsum.photos/120/120?random=4'
         },
-        coverImage: './images/curations/curation2.jpg',
+        coverImage: 'https://picsum.photos/400/300?random=123',
         artworks: ['artwork3', 'artwork4'],
         views: 890,
         likes: 67,
@@ -607,9 +607,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         curator: {
           id: 'curator3',
           name: '王伟',
-          avatar: './images/artists/yangxiping_avatar.jpg'
+          avatar: 'https://picsum.photos/120/120?random=10'
         },
-        coverImage: './images/curations/curation3.jpg',
+        coverImage: 'https://picsum.photos/400/300?random=124',
         artworks: ['artwork5', 'artwork6'],
         views: 1500,
         likes: 123,
@@ -623,9 +623,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         curator: {
           id: 'curator4',
           name: '科技艺术实验室',
-          avatar: './images/artists/wangzhengchun_avatar.jpg'
+          avatar: 'https://picsum.photos/120/120?random=10'
         },
-        coverImage: './images/curations/curation4.jpg',
+        coverImage: 'https://picsum.photos/400/300?random=125',
         artworks: ['artwork7', 'artwork8'],
         views: 2100,
         likes: 156,
@@ -944,8 +944,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'artwork_page_' + (state.currentPage + 1) + '_1',
         title: '新作品 ' + (state.currentPage + 1),
-        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
-        image: './images/artworks/autumn_colors.jpg',
+        artist: { id: 'artist1', name: '杨西屏', avatar: 'https://picsum.photos/120/120?random=2' },
+        image: 'https://picsum.photos/400/600?random=121',
         gradient: ['#8B4513', '#D2691E'],
         stats: { likes: Math.floor(Math.random() * 1000), comments: Math.floor(Math.random() * 50) },
         isLiked: false,
