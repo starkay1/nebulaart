@@ -1,83 +1,28 @@
 import { create } from 'zustand';
+import type { User, Artist, Artwork, Story, Curation, Board, Comment, Notification, UserArtwork } from '../types/index';
+import { apiClient } from '../config/api';
 
-export interface UserArtwork {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  createdAt: string;
-}
+// Mock AsyncStorage for now to avoid dependency issues
+const AsyncStorage = {
+  getItem: async (key: string): Promise<string | null> => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem(key);
+    }
+    return null;
+  },
+  setItem: async (key: string, value: string): Promise<void> => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(key, value);
+    }
+  },
+  removeItem: async (key: string): Promise<void> => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(key);
+    }
+  },
+};
 
-export interface User {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-  isArtist: boolean;
-  followers: number;
-  following: number;
-  artworks: number;
-  avatar?: string;
-  cover?: string;
-  bio?: string;
-  tags?: string[];
-  userArtworks?: UserArtwork[];
-  followersList?: string[]; // 关注我的用户 ID 列表
-  followingList?: string[]; // 我关注的用户 ID 列表
-}
-
-export interface Artist {
-  id: string;
-  name: string;
-  avatar: string;
-  location: string;
-  bio: string;
-  stats: {
-    artworks: number;
-    followers: number;
-    curations: number;
-  };
-  isFollowing: boolean;
-}
-
-export interface Artwork {
-  id: string;
-  title: string;
-  artist: {
-    id: string;
-    name: string;
-    avatar: string;
-  };
-  image: string;
-  gradient: string[];
-  stats: {
-    likes: number;
-    comments: number;
-  };
-  isLiked: boolean;
-  isBookmarked: boolean;
-}
-
-export interface Curation {
-  id: string;
-  title: string;
-  curator: string;
-  date: string;
-  cover: string[];
-  artworkCount: number;
-  description: string;
-}
-
-export interface Story {
-  id: string;
-  user: {
-    id: string;
-    name: string;
-    avatar: string;
-  };
-  hasUpdate: boolean;
-  gradient: string[];
-}
+export type { Comment, User, Artist, Artwork, Story, Curation, Board, Notification, UserArtwork } from '../types/index';
 
 interface AppState {
   // Current user
@@ -91,13 +36,19 @@ interface AppState {
   artworks: Artwork[];
   artists: Artist[];
   curations: Curation[];
+  boards: Board[];
+  comments: { [artworkId: string]: Comment[] };
+  notifications: Notification[];
   followingList: string[];
-  allUsers: User[]; // 存储所有用户数据，用于双向关注逻辑
+  savedArtworks: string[];
+  allUsers: User[];
   
   // UI State
   isCreateMenuOpen: boolean;
   selectedFilter: string;
   isDarkMode: boolean;
+  isLoading: boolean;
+  currentPage: number;
   
   // Actions
   setCurrentUser: (user: User) => void;
@@ -115,6 +66,21 @@ interface AppState {
   isUserFollowing: (artistId: string) => boolean;
   toggleDarkMode: () => void;
   loadInitialData: () => void;
+  // New actions
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (userData: { name: string; email: string; password: string; isArtist: boolean }) => Promise<boolean>;
+  logout: () => void;
+  createBoard: (name: string) => void;
+  addArtworkToBoard: (boardId: string, artworkId: string) => void;
+  removeArtworkFromBoard: (boardId: string, artworkId: string) => void;
+  createCuration: (curation: Omit<Curation, 'id' | 'views' | 'likes' | 'isLiked'>) => void;
+  addComment: (artworkId: string, text: string) => void;
+  toggleCommentLike: (artworkId: string, commentId: string) => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => void;
+  markNotificationAsRead: (notificationId: string) => void;
+  loadMoreArtworks: () => Promise<void>;
+  saveToStorage: () => Promise<void>;
+  loadFromStorage: () => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -125,11 +91,17 @@ export const useAppStore = create<AppState>((set, get) => ({
   artworks: [],
   artists: [],
   curations: [],
+  boards: [],
+  comments: {},
+  notifications: [],
   followingList: [],
+  savedArtworks: [],
   allUsers: [],
   isCreateMenuOpen: false,
   selectedFilter: '为你推荐',
   isDarkMode: false,
+  isLoading: false,
+  currentPage: 1,
   
   // Actions
   setCurrentUser: (user) => set({ currentUser: user }),
@@ -549,7 +521,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         avatar: './images/artists/yangxiping_avatar.jpg',
         location: '中国水墨画家 · 成都',
         bio: '杨西屏，一九五八年生于四川省成都市，现为中原美术学院特聘教授，中国民主建国会民建中央画院院士，中央民建画院四川省分院副院长，香港职业书画家协会副主席，成都市民建书画院副院长。作品多次参加国内外美展并两次荣获中国文联批准的《中国百杰画家》称号，在迎上海世博会画展中被六家单位评审为《杰出书画艺术家最高荣誉成就奖》荣誉称号，作品入选庆祝中华人民共和国成立六十周年中国书画名家作品展，并荣获一等奖。',
-        stats: { artworks: 14, followers: 2800, curations: 5 },
+        stats: { artworks: 14, followers: 2800, likes: 8900, curations: 5 },
         isFollowing: true,
       },
       {
@@ -558,7 +530,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         avatar: './images/artists/wangzhengchun_avatar.jpg',
         location: '花鸟山水画家 · 成都',
         bio: '王正春，1957年生于成都，先后在成都画院和朱常棣艺术工作室研修花鸟画和山水画。作品多次参加全国及省市美展并有获奖，曾八次入选中国美协主办的大展。2015年作品《金色羌山》获"三江源杯"全国书画展金奖。四川省山水画会委员，四川省美协会员，成都市美协理事，《中国书画報》特聘画师，蜀都书画院副秘书长。',
-        stats: { artworks: 6, followers: 1650, curations: 3 },
+        stats: { artworks: 6, followers: 1650, likes: 5600, curations: 3 },
         isFollowing: false,
       },
     ];
@@ -600,37 +572,65 @@ export const useAppStore = create<AppState>((set, get) => ({
       {
         id: 'curation1',
         title: '东方美学的当代表达',
-        curator: '陈明',
-        date: '2024年3月',
-        cover: ['#667eea', '#764ba2'],
-        artworkCount: 12,
+        curator: {
+          id: 'curator1',
+          name: '陈明',
+          avatar: './images/artists/yangxiping_avatar.jpg'
+        },
+        coverImage: './images/curations/curation1.jpg',
+        artworks: ['artwork1', 'artwork2'],
+        views: 1200,
+        likes: 89,
+        isLiked: false,
+        createdAt: '2024-03-01',
         description: '本次策展探讨传统东方美学在当代语境下的转译与重构。',
       },
       {
         id: 'curation2',
         title: '数字时代的水墨',
-        curator: '林小雨',
-        date: '2024年2月',
-        cover: ['#f093fb', '#f5576c'],
-        artworkCount: 8,
+        curator: {
+          id: 'curator2',
+          name: '林小雨',
+          avatar: './images/artists/wangzhengchun_avatar.jpg'
+        },
+        coverImage: './images/curations/curation2.jpg',
+        artworks: ['artwork3', 'artwork4'],
+        views: 890,
+        likes: 67,
+        isLiked: true,
+        createdAt: '2024-02-01',
         description: '探索水墨艺术在数字时代的新表达方式。',
       },
       {
         id: 'curation3',
         title: '声音与色彩的交响',
-        curator: '王伟',
-        date: '2024年1月',
-        cover: ['#4facfe', '#00f2fe'],
-        artworkCount: 15,
+        curator: {
+          id: 'curator3',
+          name: '王伟',
+          avatar: './images/artists/yangxiping_avatar.jpg'
+        },
+        coverImage: './images/curations/curation3.jpg',
+        artworks: ['artwork5', 'artwork6'],
+        views: 1500,
+        likes: 123,
+        isLiked: false,
+        createdAt: '2024-01-01',
         description: '多媒体艺术作品的视听盛宴。',
       },
       {
         id: 'curation4',
         title: '未来废墟：AI生成艺术',
-        curator: '科技艺术实验室',
-        date: '2024年4月',
-        cover: ['#fa709a', '#fee140'],
-        artworkCount: 20,
+        curator: {
+          id: 'curator4',
+          name: '科技艺术实验室',
+          avatar: './images/artists/wangzhengchun_avatar.jpg'
+        },
+        coverImage: './images/curations/curation4.jpg',
+        artworks: ['artwork7', 'artwork8'],
+        views: 2100,
+        likes: 156,
+        isLiked: true,
+        createdAt: '2024-04-01',
         description: '人工智能与艺术创作的前沿探索。',
       },
     ];
@@ -648,10 +648,355 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // 加载初始数据的函数
   loadInitialData: () => {
-    const store = get();
-    if (!store.currentUser) {
-      // 调用 loadMockData 方法
-      store.loadMockData();
+    const state = get();
+    state.loadMockData();
+  },
+
+  // Authentication actions
+  login: async (email: string, password: string) => {
+    set({ isLoading: true });
+    
+    try {
+      // 首先尝试真实 API
+      const response = await apiClient.login(email, password);
+      
+      if (response && response.user && response.token) {
+        // 设置 API 客户端的 token
+        apiClient.setToken(response.token);
+        
+        const user: User = {
+          ...response.user,
+          token: response.token,
+        };
+        
+        set({ 
+          currentUser: user, 
+          isLoading: false 
+        });
+        
+        // Save to storage
+        get().saveToStorage();
+        
+        return true;
+      }
+    } catch (error) {
+      console.log('API login failed, falling back to mock data:', error);
+      
+      // 如果 API 失败，回退到模拟数据
+      if (email === 'test@example.com' && password === 'password') {
+        const mockUser: User = {
+          id: 'user1',
+          name: '测试用户',
+          username: 'testuser',
+          email: email,
+          isArtist: false,
+          followers: 1200,
+          following: 45,
+          artworks: 8,
+          stats: {
+            followers: 1200,
+            artworks: 8,
+            likes: 8900,
+          },
+          token: 'mock_jwt_token_' + Date.now(),
+        };
+        
+        set({ 
+          currentUser: mockUser, 
+          isLoading: false 
+        });
+        
+        // Save to storage
+        get().saveToStorage();
+        
+        return true;
+      }
+    }
+    
+    set({ isLoading: false });
+    return false;
+  },
+
+  register: async (userData) => {
+    set({ isLoading: true });
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const newUser: User = {
+      id: 'user_' + Date.now(),
+      name: userData.name,
+      username: userData.name.toLowerCase().replace(/\s+/g, ''),
+      email: userData.email,
+      isArtist: userData.isArtist,
+      followers: 0,
+      following: 0,
+      artworks: 0,
+      followersList: [],
+      followingList: [],
+      token: 'mock_jwt_token_' + Date.now(),
+    };
+    
+    set({ 
+      currentUser: newUser, 
+      isLoading: false,
+      allUsers: [...get().allUsers, newUser]
+    });
+    
+    // Save to storage
+    get().saveToStorage();
+    
+    return true;
+  },
+
+  logout: () => {
+    set({ currentUser: null });
+    // Clear storage
+    get().saveToStorage();
+  },
+
+  // Board management
+  createBoard: (name: string) => {
+    const state = get();
+    if (!state.currentUser) return;
+    
+    const newBoard: Board = {
+      id: `board_${Date.now()}`,
+      name,
+      userId: get().currentUser?.id || 'user1',
+      artworks: [],
+      artworkIds: [],
+      coverImage: null,
+      createdAt: new Date().toISOString(),
+    };
+    
+    set({ boards: [...state.boards, newBoard] });
+    state.saveToStorage();
+  },
+
+  addArtworkToBoard: (boardId: string, artworkId: string) => {
+    const state = get();
+    const artwork = state.artworks.find(a => a.id === artworkId);
+    if (!artwork) return;
+    
+    set({
+      boards: state.boards.map(board =>
+        board.id === boardId
+          ? {
+              ...board,
+              artworks: [...board.artworks, artworkId],
+              coverImage: board.coverImage || artwork.image
+            }
+          : board
+      )
+    });
+    state.saveToStorage();
+  },
+
+  removeArtworkFromBoard: (boardId: string, artworkId: string) => {
+    const state = get();
+    
+    set({
+      boards: state.boards.map(board =>
+        board.id === boardId
+          ? {
+              ...board,
+              artworks: board.artworks.filter(id => id !== artworkId),
+              coverImage: board.artworks.length === 1 ? null : board.coverImage
+            }
+          : board
+      )
+    });
+    state.saveToStorage();
+  },
+
+  // Curation management
+  createCuration: (curationData) => {
+    const state = get();
+    if (!state.currentUser) return;
+    
+    const newCuration: Curation = {
+      ...curationData,
+      id: 'curation_' + Date.now(),
+      views: 0,
+      likes: 0,
+      isLiked: false,
+    };
+    
+    set({ curations: [...state.curations, newCuration] });
+    
+    // Add notification for followers
+    state.addNotification({
+      type: 'curation',
+      fromUserId: state.currentUser.id,
+      fromUserName: state.currentUser.name,
+      fromUserAvatar: state.currentUser.avatar || 'https://via.placeholder.com/40',
+      targetId: newCuration.id,
+      targetTitle: newCuration.title,
+    });
+    
+    state.saveToStorage();
+  },
+
+  // Comment system
+  addComment: (artworkId: string, text: string) => {
+    const state = get();
+    if (!state.currentUser) return;
+    
+    const newComment: Comment = {
+      id: 'comment_' + Date.now(),
+      userId: state.currentUser.id,
+      userName: state.currentUser.name,
+      userAvatar: state.currentUser.avatar || 'https://via.placeholder.com/40',
+      text,
+      timestamp: new Date().toLocaleString('zh-CN'),
+      likes: 0,
+      isLiked: false,
+    };
+    
+    set({
+      comments: {
+        ...state.comments,
+        [artworkId]: [...(state.comments[artworkId] || []), newComment]
+      }
+    });
+    
+    // Add notification for artwork owner
+    const artwork = state.artworks.find(a => a.id === artworkId);
+    if (artwork && artwork.artist.id !== state.currentUser.id) {
+      state.addNotification({
+        type: 'comment',
+        fromUserId: state.currentUser.id,
+        fromUserName: state.currentUser.name,
+        fromUserAvatar: state.currentUser.avatar || 'https://via.placeholder.com/40',
+        targetId: artworkId,
+        targetTitle: artwork.title,
+      });
+    }
+    
+    state.saveToStorage();
+  },
+
+  toggleCommentLike: (artworkId: string, commentId: string) => {
+    const state = get();
+    if (!state.currentUser) return;
+    
+    set({
+      comments: {
+        ...state.comments,
+        [artworkId]: (state.comments[artworkId] || []).map(comment =>
+          comment.id === commentId
+            ? {
+                ...comment,
+                isLiked: !comment.isLiked,
+                likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1
+              }
+            : comment
+        )
+      }
+    });
+    
+    state.saveToStorage();
+  },
+
+  // Notification system
+  addNotification: (notificationData) => {
+    const state = get();
+    
+    const newNotification: Notification = {
+      ...notificationData,
+      id: 'notification_' + Date.now(),
+      timestamp: new Date().toLocaleString('zh-CN'),
+      isRead: false,
+    };
+    
+    set({ 
+      notifications: [newNotification, ...state.notifications].slice(0, 100) // Keep only latest 100
+    });
+    
+    state.saveToStorage();
+  },
+
+  markNotificationAsRead: (notificationId: string) => {
+    const state = get();
+    
+    set({
+      notifications: state.notifications.map(notification =>
+        notification.id === notificationId
+          ? { ...notification, isRead: true }
+          : notification
+      )
+    });
+    
+    state.saveToStorage();
+  },
+
+  // Pagination
+  loadMoreArtworks: async () => {
+    const state = get();
+    set({ isLoading: true });
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Mock additional artworks
+    const additionalArtworks: Artwork[] = [
+      {
+        id: 'artwork_page_' + (state.currentPage + 1) + '_1',
+        title: '新作品 ' + (state.currentPage + 1),
+        artist: { id: 'artist1', name: '杨西屏', avatar: './images/artists/yangxiping_avatar.jpg' },
+        image: './images/artworks/autumn_colors.jpg',
+        gradient: ['#8B4513', '#D2691E'],
+        stats: { likes: Math.floor(Math.random() * 1000), comments: Math.floor(Math.random() * 50) },
+        isLiked: false,
+        isBookmarked: false,
+      }
+    ];
+    
+    set({
+      artworks: [...state.artworks, ...additionalArtworks],
+      currentPage: state.currentPage + 1,
+      isLoading: false
+    });
+  },
+
+  // Storage management
+  saveToStorage: async () => {
+    try {
+      const state = get();
+      const dataToSave = {
+        currentUser: state.currentUser,
+        followingList: state.followingList,
+        savedArtworks: state.savedArtworks,
+        boards: state.boards,
+        comments: state.comments,
+        notifications: state.notifications,
+        isDarkMode: state.isDarkMode,
+      };
+      
+      await AsyncStorage.setItem('nebula_app_data', JSON.stringify(dataToSave));
+    } catch (error) {
+      console.error('Failed to save data to storage:', error);
+    }
+  },
+
+  loadFromStorage: async () => {
+    try {
+      const savedData = await AsyncStorage.getItem('nebula_app_data');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        set({
+          currentUser: parsedData.currentUser || null,
+          followingList: parsedData.followingList || [],
+          savedArtworks: parsedData.savedArtworks || [],
+          boards: parsedData.boards || [],
+          comments: parsedData.comments || {},
+          notifications: parsedData.notifications || [],
+          isDarkMode: parsedData.isDarkMode || false,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load data from storage:', error);
     }
   },
 }));

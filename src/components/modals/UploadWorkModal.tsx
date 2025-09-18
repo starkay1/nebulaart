@@ -1,19 +1,9 @@
 import React, { useState } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  Alert,
-  ScrollView,
-  Dimensions,
-} from 'react-native';
-// import { launchImageLibrary, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { useAppStore } from '../../store/appStore';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, Modal, ScrollView, Image, Dimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../theme/theme';
+import { useAppStore, UserArtwork } from '../../store/appStore';
+import { pickImage, SelectedImage, generateImageId } from '../../utils/imagePicker';
 import CloseIcon from '../icons/CloseIcon';
 
 interface UploadWorkModalProps {
@@ -63,12 +53,19 @@ export default function UploadWorkModal({ visible, onClose, onSuccess }: UploadW
       // 模拟上传延迟
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const artwork = {
-        id: Date.now().toString(),
-        title: title.trim(),
-        description: description.trim(),
+      const artwork: UserArtwork = {
+        id: generateImageId(),
+        title,
+        description,
         image: selectedImage,
+        artistId: 'user1', // Current user ID
         createdAt: new Date().toISOString(),
+        stats: {
+          likes: 0,
+          comments: 0,
+        },
+        isLiked: false,
+        isBookmarked: false,
       };
 
       addArtwork(artwork);

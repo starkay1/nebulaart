@@ -102,10 +102,10 @@ export const ArtistPage: React.FC<any> = ({ route, navigation }) => {
             <View style={styles.avatarContainer}>
               <Image
                 source={artist.name === '杨西屏' 
-                  ? require('../../public/images/artists/yangxiping_avatar.jpg')
+                  ? { uri: './images/artists/yangxiping_avatar.jpg' }
                   : artist.name === '王正春'
-                  ? require('../../public/images/artists/wangzhengchun_avatar.jpg')
-                  : require('../../public/images/artists/yangxiping_avatar.jpg')
+                  ? { uri: './images/artists/wangzhengchun_avatar.jpg' }
+                  : { uri: './images/artists/yangxiping_avatar.jpg' }
                 }
                 style={styles.avatar}
                 resizeMode="cover"

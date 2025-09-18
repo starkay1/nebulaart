@@ -1,29 +1,23 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, { memo, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../theme/theme';
+import { Artist } from '../types';
 
 interface ArtistCardProps {
-  artist: {
-    id: string;
-    name: string;
-    avatar: string;
-    location: string;
-    stats: {
-      followers: number;
-      artworks: number;
-    };
-    isFollowing?: boolean;
-    hasStoryUpdate?: boolean;
-  };
+  artist: Artist;
   onPress: () => void;
   onFollowPress?: () => void;
 }
 
-export const ArtistCard: React.FC<ArtistCardProps> = ({
+const ArtistCard: React.FC<ArtistCardProps> = memo(({
   artist,
   onPress,
   onFollowPress,
 }) => {
+  const handleFollowPress = useCallback(() => {
+    onFollowPress?.();
+  }, [onFollowPress]);
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.avatarContainer}>
@@ -54,7 +48,7 @@ export const ArtistCard: React.FC<ArtistCardProps> = ({
       {onFollowPress && (
         <TouchableOpacity
           style={[styles.followBtn, artist.isFollowing && styles.followBtnActive]}
-          onPress={onFollowPress}
+          onPress={handleFollowPress}
         >
           <Text style={[styles.followBtnText, artist.isFollowing && styles.followBtnTextActive]}>
             {artist.isFollowing ? '已关注' : '关注'}
@@ -63,7 +57,9 @@ export const ArtistCard: React.FC<ArtistCardProps> = ({
       )}
     </TouchableOpacity>
   );
-};
+});
+
+export default ArtistCard;
 
 const styles = StyleSheet.create({
   card: {

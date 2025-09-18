@@ -9,6 +9,7 @@ export const theme = {
     warning: '#f59e0b',
     danger: '#ef4444',
     bg: '#ffffff',
+    background: '#ffffff',
     surface: '#ffffff',
     surfaceElevated: '#ffffff',
     gray50: '#fafafa',
@@ -39,6 +40,7 @@ export const theme = {
   fontSize: {
     xs: 12,
     sm: 14,
+    md: 16,
     base: 16,
     lg: 18,
     xl: 20,

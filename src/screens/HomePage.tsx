@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Image,
   Dimensions,
   FlatList,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,7 +21,7 @@ import {
   SearchIcon,
   NotificationIcon,
 } from '../components/icons';
-import { PinCard } from '../components/PinCard';
+import PinCard from '../components/PinCard';
 import { LoadingPlaceholder } from '../components/LoadingPlaceholder';
 
 const { width } = Dimensions.get('window');
@@ -84,7 +86,11 @@ export const HomePage: React.FC = () => {
     loadInitialData,
     toggleLike,
     toggleBookmark,
+    loadMoreArtworks,
+    isLoading,
   } = useAppStore();
+  
+  const [refreshing, setRefreshing] = useState(false);
   
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -126,6 +132,18 @@ export const HomePage: React.FC = () => {
     />
   );
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    loadInitialData();
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const handleLoadMore = () => {
+    if (!isLoading) {
+      loadMoreArtworks();
+    }
+  };
+
   const renderPinCard = ({ item, index }: { item: any; index: number }) => (
     <View style={[styles.pinCardContainer, { marginLeft: index % 2 === 0 ? 0 : theme.spacing.sm }]}>
       <PinCard
@@ -144,6 +162,23 @@ export const HomePage: React.FC = () => {
     </View>
   );
 
+  const renderLoadMoreButton = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.loadMoreContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>加载更多作品中...</Text>
+        </View>
+      );
+    }
+    
+    return (
+      <TouchableOpacity style={styles.loadMoreButton} onPress={handleLoadMore}>
+        <Text style={styles.loadMoreText}>加载更多</Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -158,7 +193,18 @@ export const HomePage: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
+          />
+        }
+      >
         {/* Brand Introduction */}
         <View style={styles.brandIntro}>
           <View style={styles.brandTextContainer}>
@@ -229,6 +275,9 @@ export const HomePage: React.FC = () => {
             scrollEnabled={false}
             contentContainerStyle={styles.masonryContent}
           />
+          
+          {/* Load More Section */}
+          {artworks.length > 0 && renderLoadMoreButton()}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -389,8 +438,32 @@ const styles = StyleSheet.create({
   brandIntroText: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
-    lineHeight: 1.8,
+    lineHeight: theme.lineHeight.loose,
     textAlign: 'center',
-    whiteSpace: 'nowrap',
+  },
+  loadMoreContainer: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  loadMoreButton: {
+    alignSelf: 'center',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.full,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginVertical: theme.spacing.lg,
+    ...theme.shadows.sm,
+  },
+  loadMoreText: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text,
+  },
+  loadingText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textSecondary,
   },
 });

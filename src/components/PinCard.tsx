@@ -1,22 +1,10 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  Dimensions,
-} from 'react-native';
+import React, { memo, useCallback, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'react-native';
+import { HeartIcon, CommentIcon, BookmarkIcon, ShareIcon, MoreIcon } from './icons';
 import { theme } from '../theme/theme';
 import { LoadingPlaceholder } from './LoadingPlaceholder';
-import {
-  HeartIcon,
-  CommentIcon,
-  BookmarkIcon,
-  ShareIcon,
-  MoreIcon,
-} from './icons';
 
 interface PinCardProps {
   artwork: {
@@ -42,7 +30,7 @@ interface PinCardProps {
   onBookmarkPress?: () => void;
 }
 
-export const PinCard: React.FC<PinCardProps> = ({
+const PinCard: React.FC<PinCardProps> = memo(({
   artwork,
   onPress,
   onArtistPress,
@@ -51,6 +39,22 @@ export const PinCard: React.FC<PinCardProps> = ({
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  const handleLikePress = useCallback(() => {
+    onLikePress?.();
+  }, [onLikePress]);
+
+  const handleBookmarkPress = useCallback(() => {
+    onBookmarkPress?.();
+  }, [onBookmarkPress]);
+
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true);
+  }, []);
+
+  const handleImageError = useCallback(() => {
+    setImageError(true);
+  }, []);
   
   // Calculate height based on aspect ratio or use default
   const baseWidth = (Dimensions.get('window').width - theme.spacing.lg * 3) / 2;
@@ -70,9 +74,11 @@ export const PinCard: React.FC<PinCardProps> = ({
         
         {!imageError && (
           <Image
-            source={{ uri: artwork.image }}
+            source={{ 
+              uri: artwork.image,
+            }}
             style={styles.pinGradient}
-            resizeMode="cover"
+            resizeMode={"cover"}
             onLoad={() => setImageLoaded(true)}
             onError={() => {
               setImageError(true);
@@ -117,9 +123,12 @@ export const PinCard: React.FC<PinCardProps> = ({
         <TouchableOpacity style={styles.pinArtist} onPress={onArtistPress}>
           <View style={styles.storyAvatar}>
             <Image 
-              source={{ uri: artwork.artist.avatar }} 
+              source={{ 
+                uri: artwork.artist.avatar,
+                priority: FastImage.priority.low,
+              }} 
               style={styles.pinArtistAvatarImage}
-              resizeMode="cover"
+              resizeMode={"cover"}
             />
           </View>
           <Text style={styles.pinArtistName}>{artwork.artist.name}</Text>
@@ -150,7 +159,9 @@ export const PinCard: React.FC<PinCardProps> = ({
       </View>
     </TouchableOpacity>
   );
-};
+});
+
+export default PinCard;
 
 const styles = StyleSheet.create({
   pinCard: {

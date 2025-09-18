@@ -10,7 +10,11 @@ import { ArtistHubPage } from '../screens/ArtistHubPage';
 import { ProfilePage } from '../screens/ProfilePage';
 import { ArtistPage } from '../screens/ArtistPage';
 import { CurationDetailPage } from '../screens/CurationDetailPage';
-import ArtworkDetailPage from '../screens/ArtworkDetailPage';
+import { ArtworkDetailPage } from '../screens/ArtworkDetailPage';
+import { AuthPage } from '../screens/AuthPage';
+import { BoardPage } from '../screens/BoardPage';
+import { CurationCreatePage } from '../screens/CurationCreatePage';
+import { NotificationPage } from '../screens/NotificationPage';
 
 // Import icons
 import HomeIcon from '../components/icons/HomeIcon';
@@ -122,6 +126,38 @@ export default function AppNavigator() {
         <Stack.Screen
           name="CurationDetailPage"
           component={CurationDetailPage}
+          options={{
+            presentation: 'modal',
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen
+          name="AuthPage"
+          component={AuthPage}
+          options={{
+            presentation: 'modal',
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen
+          name="BoardPage"
+          component={BoardPage}
+          options={{
+            presentation: 'modal',
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen
+          name="CurationCreatePage"
+          component={CurationCreatePage}
+          options={{
+            presentation: 'modal',
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen
+          name="NotificationPage"
+          component={NotificationPage}
           options={{
             presentation: 'modal',
             gestureEnabled: true,

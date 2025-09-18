@@ -116,7 +116,7 @@ export const CurationDetailPage: React.FC<CurationDetailPageProps> = ({ navigati
         {/* Cover */}
         <View style={styles.cover}>
           <LinearGradient
-            colors={curation.cover}
+            colors={curation.cover || ['#667eea', '#764ba2']}
             style={styles.coverGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}

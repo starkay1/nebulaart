@@ -13,7 +13,7 @@ import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../theme/theme';
 import { useAppStore } from '../store/appStore';
-import { PlusIcon, CloseIcon, ImageIcon } from './icons';
+import { PlusIcon, CloseIcon, ImageIcon, BoardIcon, CurationIcon } from './icons';
 import { buttonAccessibility } from '../utils/accessibility';
 
 const { width, height } = Dimensions.get('window');
@@ -103,6 +103,20 @@ export const CreateButton: React.FC = () => {
   const handleOptionPress = (option: string) => {
     console.log('Create option selected:', option);
     toggleCreateMenu();
+    
+    // Navigate to appropriate screen based on option
+    // This would need navigation prop passed down or use navigation hook
+    switch (option) {
+      case '上传作品':
+        // Navigate to artwork upload
+        break;
+      case '创建画板':
+        // Navigate to board creation
+        break;
+      case '发起策展':
+        // Navigate to curation creation
+        break;
+    }
   };
 
   return (
@@ -180,17 +194,17 @@ export const CreateButton: React.FC = () => {
                   <CreateOption
                     icon={<ImageIcon size={24} color="white" />}
                     label="上传作品"
-                    onPress={() => handleOptionPress('upload')}
+                    onPress={() => handleOptionPress('上传作品')}
                   />
                   <CreateOption
-                    icon={<ImageIcon size={24} color="white" />}
+                    icon={<BoardIcon size={24} color="white" />}
                     label="创建画板"
-                    onPress={() => handleOptionPress('board')}
+                    onPress={() => handleOptionPress('创建画板')}
                   />
                   <CreateOption
-                    icon={<ImageIcon size={24} color="white" />}
+                    icon={<CurationIcon size={24} color="white" />}
                     label="发起策展"
-                    onPress={() => handleOptionPress('curation')}
+                    onPress={() => handleOptionPress('发起策展')}
                   />
                 </View>
               </View>

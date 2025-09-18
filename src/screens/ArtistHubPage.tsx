@@ -88,7 +88,7 @@ export const ArtistHubPage: React.FC = () => {
 
   const filteredArtists = artists.filter((artist) =>
     artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    artist.location.toLowerCase().includes(searchQuery.toLowerCase())
+    artist.location?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderArtistCard = ({ item }: { item: any }) => (

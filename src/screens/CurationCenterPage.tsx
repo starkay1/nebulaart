@@ -87,10 +87,10 @@ export const CurationCenterPage: React.FC = () => {
               >
                 <Image 
                   source={exhibition.id === 'exhibition1' 
-                    ? require('../../public/images/curations/yangxiping_retrospective_small.jpg')
+                    ? { uri: './images/curations/yangxiping_retrospective_small.jpg' }
                     : exhibition.id === 'exhibition2'
-                    ? require('../../public/images/curations/wangzhengchun_contemporary.jpg')
-                    : require('../../public/images/curations/emerging_artists_group.jpg')
+                    ? { uri: './images/curations/wangzhengchun_contemporary.jpg' }
+                    : { uri: './images/curations/emerging_artists_group.jpg' }
                   }
                   style={styles.featuredImage}
                   resizeMode="cover"
@@ -128,10 +128,10 @@ export const CurationCenterPage: React.FC = () => {
               <View style={styles.exhibitionHeader}>
                 <Image
                   source={exhibition.artist?.name === '杨西屏' 
-                    ? require('../../public/images/artists/yangxiping_avatar.jpg')
+                    ? { uri: './images/artists/yangxiping_avatar.jpg' }
                     : exhibition.artist?.name === '王正春'
-                    ? require('../../public/images/artists/wangzhengchun_avatar.jpg')
-                    : require('../../public/images/artists/yangxiping_avatar.jpg')
+                    ? { uri: './images/artists/wangzhengchun_avatar.jpg' }
+                    : { uri: './images/artists/yangxiping_avatar.jpg' }
                   }
                   style={styles.curatorAvatar}
                 />
@@ -146,7 +146,7 @@ export const CurationCenterPage: React.FC = () => {
                 {exhibition.artworks.slice(0, 4).map((artwork) => (
                   <View key={artwork.id} style={styles.previewItem}>
                     <Image
-                      source={require('../../public/images/artworks/autumn_herding.jpg')}
+                      source={{ uri: './images/artworks/autumn_herding.jpg' }}
                       style={styles.previewImage}
                     />
                     <Text style={styles.previewTitle} numberOfLines={1}>
@@ -193,7 +193,7 @@ export const CurationCenterPage: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
   },
   exhibitionCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
     marginBottom: theme.spacing.md,
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     width: '47%',
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
     alignItems: 'center',

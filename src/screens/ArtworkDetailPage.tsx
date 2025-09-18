@@ -1,41 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  Image,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  TextInput,
+  Alert,
+  FlatList,
 } from 'react-native';
+import { Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAppStore } from '../store/appStore';
+// import Share from 'react-native-share'; // Disabled for web build
+import { useAppStore, Comment } from '../store/appStore';
 import { theme } from '../theme/theme';
-import HeartIcon from '../components/icons/HeartIcon';
-import CommentIcon from '../components/icons/CommentIcon';
-import BookmarkIcon from '../components/icons/BookmarkIcon';
+import { HeartIcon, CommentIcon, BookmarkIcon, ShareIcon, BackIcon } from '../components/icons';
 
 const { width, height } = Dimensions.get('window');
 
 interface ArtworkDetailPageProps {
-  route: {
+  route?: {
     params: {
       artworkId: string;
     };
   };
-  navigation: any;
+  navigation?: any;
 }
 
-const ArtworkDetailPage: React.FC<any> = ({
+const ArtworkDetailPage: React.FC<ArtworkDetailPageProps> = ({
   route,
   navigation,
 }) => {
-  const { artworkId } = route.params;
+  const artworkId = route?.params?.artworkId || 'artwork1'; // fallback for testing
   const insets = useSafeAreaInsets();
-  const { artworks, toggleLike, toggleBookmark } = useAppStore();
+  const { 
+    artworks, 
+    comments, 
+    currentUser, 
+    toggleLike, 
+    toggleBookmark, 
+    addComment, 
+    toggleCommentLike 
+  } = useAppStore();
+  
+  const [commentText, setCommentText] = useState('');
+  const [showComments, setShowComments] = useState(false);
   
   const artwork = artworks.find(a => a.id === artworkId);
+  const artworkComments = comments[artworkId] || [];
   
   if (!artwork) {
     return (
@@ -45,134 +59,243 @@ const ArtworkDetailPage: React.FC<any> = ({
     );
   }
 
-  return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>←</Text>
+  const handleShare = async () => {
+    try {
+      // Web fallback for sharing
+      if (navigator.share) {
+        await navigator.share({
+          title: artwork.title,
+          text: `查看${artwork.artist.name}的作品「${artwork.title}」`,
+          url: window.location.href,
+        });
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        Alert.alert('已复制', '链接已复制到剪贴板');
+      }
+    } catch (error) {
+      console.log('Share error:', error);
+    }
+  };
+
+  const handleAddComment = () => {
+    if (!currentUser) {
+      Alert.alert('提示', '请先登录后再评论');
+      return;
+    }
+    
+    if (!commentText.trim()) {
+      Alert.alert('提示', '请输入评论内容');
+      return;
+    }
+    
+    addComment(artworkId, commentText.trim());
+    setCommentText('');
+    Alert.alert('成功', '评论发布成功');
+  };
+
+  const handleCommentLike = (commentId: string) => {
+    if (!currentUser) {
+      Alert.alert('提示', '请先登录');
+      return;
+    }
+    toggleCommentLike(artworkId, commentId);
+  };
+
+  const renderCommentItem = ({ item }: { item: Comment }) => (
+    <View style={styles.commentItem}>
+      <Image
+        source={{ 
+          uri: item.userAvatar,
+        }}
+        style={styles.commentAvatar}
+        resizeMode={"cover"}
+      />
+      <View style={styles.commentContent}>
+        <View style={styles.commentHeader}>
+          <Text style={styles.commentUserName}>{item.userName}</Text>
+          <Text style={styles.commentTime}>{item.timestamp}</Text>
+        </View>
+        <Text style={styles.commentText}>{item.text}</Text>
+        <TouchableOpacity
+          style={styles.commentLikeButton}
+          onPress={() => handleCommentLike(item.id)}
+        >
+          <HeartIcon 
+            size={16} 
+            color={item.isLiked ? theme.colors.primary : theme.colors.textLight}
+            filled={item.isLiked}
+          />
+          <Text style={styles.commentLikeText}>{item.likes}</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>作品详情</Text>
-        <View style={styles.placeholder} />
       </View>
+    </View>
+  );
 
-      {/* Artwork Image */}
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: artwork.image }}
-          style={styles.artworkImage}
-          resizeMode="contain"
-        />
-      </View>
-
-      {/* Content */}
-      <View style={styles.content}>
-        {/* Title and Artist */}
-        <View style={styles.titleSection}>
-          <Text style={styles.artworkTitle}>{artwork.title}</Text>
-          <TouchableOpacity 
-            style={styles.artistInfo}
-            onPress={() => navigation.navigate('ArtistPage', { artistId: artwork.artist.id })}
+  return (
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
           >
-            <View style={styles.storyAvatar}>
-              <Image
-                source={{ uri: artwork.artist.avatar }}
-                style={styles.artistAvatarImage}
-                resizeMode="cover"
+            <BackIcon size={24} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>作品详情</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        {/* Image */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={{ 
+              uri: artwork.image,
+              priority: FastImage.priority.high,
+            }} 
+            style={styles.image} 
+            resizeMode={"cover"}
+          />
+        </View>
+
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Artist Info */}
+          <View style={styles.artistSection}>
+            <View style={styles.artistInfo}>
+              <Image 
+                source={{ 
+                  uri: artwork.artist.avatar,
+                }} 
+                style={styles.artistAvatar} 
+                resizeMode={"cover"}
+              />
+              <View style={styles.artistDetails}>
+                <Text style={styles.artistName}>{artwork.artist.name}</Text>
+                <Text style={styles.artworkTitle}>{artwork.title}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Actions */}
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => toggleLike(artwork.id)}
+            >
+              <HeartIcon
+                size={24}
+                color={artwork.isLiked ? theme.colors.primary : theme.colors.textSecondary}
+                filled={artwork.isLiked}
+              />
+              <Text style={[styles.actionText, artwork.isLiked && styles.actionTextActive]}>
+                {artwork.stats.likes}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => setShowComments(!showComments)}
+            >
+              <CommentIcon size={24} color={theme.colors.textSecondary} />
+              <Text style={styles.actionText}>{artworkComments.length}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => toggleBookmark(artwork.id)}
+            >
+              <BookmarkIcon
+                size={24}
+                color={artwork.isBookmarked ? theme.colors.primary : theme.colors.textSecondary}
+                filled={artwork.isBookmarked}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleShare}
+            >
+              <ShareIcon size={24} color={theme.colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Comments Section */}
+          {showComments && (
+            <View style={styles.commentsSection}>
+              <Text style={styles.sectionTitle}>评论 ({artworkComments.length})</Text>
+              
+              {/* Comment Input */}
+              {currentUser && (
+                <View style={styles.commentInput}>
+                  <TextInput
+                    style={styles.commentTextInput}
+                    placeholder="写下你的想法..."
+                    placeholderTextColor={theme.colors.textLight}
+                    value={commentText}
+                    onChangeText={setCommentText}
+                    multiline
+                    maxLength={500}
+                  />
+                  <TouchableOpacity
+                    style={styles.commentSubmitButton}
+                    onPress={handleAddComment}
+                  >
+                    <LinearGradient
+                      colors={[...theme.gradients.primary]}
+                      style={styles.commentSubmitGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Text style={styles.commentSubmitText}>发布</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {/* Comments List */}
+              <FlatList
+                data={artworkComments}
+                renderItem={renderCommentItem}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                ListEmptyComponent={
+                  <Text style={styles.noCommentsText}>暂无评论，快来发表第一条评论吧！</Text>
+                }
               />
             </View>
-            <Text style={styles.artistName}>{artwork.artist.name}</Text>
-          </TouchableOpacity>
+          )}
         </View>
-
-        {/* Actions */}
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => toggleLike(artwork.id)}
-          >
-            <HeartIcon 
-              filled={artwork.isLiked} 
-              color={artwork.isLiked ? theme.colors.primary : theme.colors.text}
-            />
-            <Text style={styles.actionText}>{artwork.stats.likes}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionButton}>
-            <CommentIcon color={theme.colors.text} />
-            <Text style={styles.actionText}>{artwork.stats.comments}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => toggleBookmark(artwork.id)}
-          >
-            <BookmarkIcon 
-              filled={artwork.isBookmarked}
-              color={artwork.isBookmarked ? theme.colors.primary : theme.colors.text}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Description */}
-        <View style={styles.descriptionSection}>
-          <Text style={styles.sectionTitle}>作品介绍</Text>
-          <Text style={styles.description}>
-            这是一幅精美的艺术作品，展现了艺术家独特的创作风格和深厚的艺术功底。作品运用了丰富的色彩和精湛的技法，为观者带来了视觉上的享受和心灵上的震撼。
-          </Text>
-        </View>
-
-        {/* Related Works */}
-        <View style={styles.relatedSection}>
-          <Text style={styles.sectionTitle}>相关作品</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {artworks
-              .filter(a => a.artist.id === artwork.artist.id && a.id !== artwork.id)
-              .slice(0, 5)
-              .map((relatedArtwork) => (
-                <TouchableOpacity 
-                  key={relatedArtwork.id} 
-                  style={styles.relatedItem}
-                  onPress={() => navigation.navigate('ArtworkDetailPage', { artworkId: relatedArtwork.id })}
-                >
-                  <Image
-                    source={{ uri: relatedArtwork.image }}
-                    style={styles.relatedImage}
-                  />
-                  <Text style={styles.relatedTitle} numberOfLines={1}>
-                    {relatedArtwork.title}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-          </ScrollView>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.background,
   },
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: theme.spacing.md,
-    backgroundColor: '#ffffff',
   },
   backButton: {
     width: 40,
     height: 40,
-    alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
-  },
-  backText: {
-    fontSize: 24,
-    color: theme.colors.text,
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: theme.fontSize.lg,
@@ -192,44 +315,39 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...theme.shadows.md,
   },
-  artworkImage: {
+  image: {
     width: '100%',
     height: '100%',
   },
   content: {
     padding: theme.spacing.lg,
   },
-  titleSection: {
+  artistSection: {
     marginBottom: theme.spacing.lg,
-  },
-  artworkTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
   },
   artistInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  storyAvatar: {
+  artistAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: theme.colors.gray100,
-    borderWidth: 2,
-    borderColor: theme.colors.surface,
-    marginRight: theme.spacing.sm,
-    overflow: 'hidden',
+    marginRight: theme.spacing.md,
   },
-  artistAvatarImage: {
+  artistDetails: {
     flex: 1,
-    borderRadius: 18,
   },
   artistName: {
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.medium,
-    color: theme.colors.textSecondary,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+  },
+  artworkTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text,
   },
   actions: {
     flexDirection: 'row',
@@ -254,38 +372,101 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
   },
-  descriptionSection: {
-    marginBottom: theme.spacing.xl,
+  actionTextActive: {
+    color: theme.colors.primary,
+  },
+  commentsSection: {
+    marginTop: theme.spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    paddingTop: theme.spacing.lg,
   },
   sectionTitle: {
     fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: theme.fontWeight.bold,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
   },
-  description: {
-    fontSize: theme.fontSize.base,
-    lineHeight: theme.lineHeight.relaxed * theme.fontSize.base,
-    color: theme.colors.textSecondary,
+  commentInput: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
-  relatedSection: {
-    marginBottom: theme.spacing.xl,
+  commentTextInput: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text,
+    maxHeight: 80,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  relatedItem: {
-    marginRight: theme.spacing.md,
-    width: 120,
-  },
-  relatedImage: {
-    width: 120,
-    height: 120,
+  commentSubmitButton: {
     borderRadius: theme.borderRadius.md,
+    overflow: 'hidden',
+  },
+  commentSubmitGradient: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
+  commentSubmitText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: 'white',
+  },
+  commentItem: {
+    flexDirection: 'row',
+    marginBottom: theme.spacing.lg,
+  },
+  commentAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: theme.spacing.md,
+  },
+  commentContent: {
+    flex: 1,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: theme.spacing.xs,
   },
-  relatedTitle: {
+  commentUserName: {
     fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text,
+    marginRight: theme.spacing.md,
+  },
+  commentTime: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textLight,
+  },
+  commentText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text,
+    lineHeight: theme.lineHeight.relaxed,
+    marginBottom: theme.spacing.sm,
+  },
+  commentLikeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  commentLikeText: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textLight,
+  },
+  noCommentsText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textLight,
     textAlign: 'center',
+    paddingVertical: theme.spacing.xl,
   },
 });
 
-export default ArtworkDetailPage;
+export { ArtworkDetailPage };

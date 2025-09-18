@@ -13,7 +13,12 @@ import { ArtistHubPage } from './screens/ArtistHubPage';
 import { ProfilePage } from './screens/ProfilePage';
 import { ArtistPage } from './screens/ArtistPage';
 import { CurationDetailPage } from './screens/CurationDetailPage';
-import ArtworkDetailPage from './screens/ArtworkDetailPage';
+import { ArtworkDetailPage } from './screens/ArtworkDetailPage';
+import { AuthPage } from './screens/AuthPage';
+import { BoardPage } from './screens/BoardPage';
+import { CurationCreatePage } from './screens/CurationCreatePage';
+import { NotificationPage } from './screens/NotificationPage';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { CreateButton } from './components/CreateButton';
 import {
   HomeIcon,
@@ -168,6 +173,34 @@ const AppNavigator = () => {
           },
         }}
       />
+      <Stack.Screen 
+        name="AuthPage" 
+        component={AuthPage}
+        options={{
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen 
+        name="BoardPage" 
+        component={BoardPage}
+        options={{
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen 
+        name="CurationCreatePage" 
+        component={CurationCreatePage}
+        options={{
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen 
+        name="NotificationPage" 
+        component={NotificationPage}
+        options={{
+          presentation: 'modal',
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -194,10 +227,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <StatusBar style="dark" backgroundColor={theme.colors.surface} />
-        <AppNavigator />
-      </NavigationContainer>
+      <ErrorBoundary>
+        <NavigationContainer>
+          <StatusBar style="dark" backgroundColor={theme.colors.surface} />
+          <AppNavigator />
+        </NavigationContainer>
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }
