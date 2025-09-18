@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -35,20 +35,51 @@ export const ProfilePage: React.FC = () => {
     bio: '', 
     portfolio: '' 
   });
+  const [userArtworks, setUserArtworks] = useState<any[]>([]);
   const filters = ['作品', '收藏', '画板'];
 
-  const mockArtworks = [
-    {
-      id: 'my1',
-      title: '我的作品 1',
-      image: '/images/artworks/yangxiping_01.jpg',
-    },
-    {
-      id: 'my2',
-      title: '我的作品 2',
-      image: '/images/artworks/yangxiping_02.jpg',
-    },
-  ];
+  useEffect(() => {
+    const loadUserArtworks = async () => {
+      try {
+        const response = await fetch(`https://nebulaart-api.onrender.com/api/users/${currentUser?.id}/artworks`);
+        const artworks = await response.json();
+        setUserArtworks(artworks);
+      } catch (error) {
+        console.error('Failed to load user artworks:', error);
+        // Fallback data
+        setUserArtworks([
+          {
+            id: 'my1',
+            title: '我的作品 1',
+            image: 'https://picsum.photos/400/600?random=2001',
+            stats: { likes: 120, comments: 15 },
+          },
+          {
+            id: 'my2',
+            title: '我的作品 2',
+            image: 'https://picsum.photos/400/600?random=2002',
+            stats: { likes: 89, comments: 8 },
+          },
+          {
+            id: 'my3',
+            title: '我的作品 3',
+            image: 'https://picsum.photos/400/600?random=2003',
+            stats: { likes: 156, comments: 23 },
+          },
+          {
+            id: 'my4',
+            title: '我的作品 4',
+            image: 'https://picsum.photos/400/600?random=2004',
+            stats: { likes: 203, comments: 31 },
+          },
+        ]);
+      }
+    };
+
+    if (currentUser) {
+      loadUserArtworks();
+    }
+  }, [currentUser]);
 
   const handleLogin = () => {
     if (!loginForm.email || !loginForm.password) {
@@ -218,7 +249,7 @@ export const ProfilePage: React.FC = () => {
         {/* Content Grid */}
         <View style={styles.contentContainer}>
           <FlatList
-            data={mockArtworks}
+            data={userArtworks}
             renderItem={renderArtwork}
             keyExtractor={(item) => item.id}
             numColumns={2}

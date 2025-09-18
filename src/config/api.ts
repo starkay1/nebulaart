@@ -1,9 +1,7 @@
 // API Configuration
 const API_CONFIG = {
-  // 根据环境自动选择 API 基础 URL
-  BASE_URL: process.env.NODE_ENV === 'production' 
-    ? 'https://nebulaart-api.onrender.com'
-    : 'http://localhost:3000',
+  // 使用真实后端 API
+  BASE_URL: 'https://nebulaart-api.onrender.com',
   
   // API 端点
   ENDPOINTS: {
