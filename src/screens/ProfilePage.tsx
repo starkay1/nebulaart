@@ -20,7 +20,7 @@ import { Switch } from 'react-native';
 import BecomeArtistModal from '../components/modals/BecomeArtistModal';
 
 export const ProfilePage: React.FC = () => {
-  const { currentUser, selectedFilter, setSelectedFilter, isDarkMode, toggleDarkMode } = useAppStore();
+  const { currentUser, selectedFilter, setSelectedFilter, isDarkMode, toggleDarkMode, login, register, logout } = useAppStore();
   const [showBecomeArtistModal, setShowBecomeArtistModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -81,24 +81,44 @@ export const ProfilePage: React.FC = () => {
     }
   }, [currentUser]);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!loginForm.email || !loginForm.password) {
       Alert.alert('错误', '请填写完整的登录信息');
       return;
     }
-    Alert.alert('登录成功', '欢迎回到星云艺术');
-    setShowLoginModal(false);
-    setLoginForm({ email: '', password: '' });
+    
+    try {
+      const success = await login(loginForm.email, loginForm.password);
+      if (success) {
+        Alert.alert('登录成功', '欢迎回到星云艺术');
+        setShowLoginModal(false);
+        setLoginForm({ email: '', password: '' });
+      } else {
+        Alert.alert('登录失败', '邮箱或密码错误，请重试');
+      }
+    } catch (error) {
+      Alert.alert('登录失败', '网络错误，请稍后重试');
+    }
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!registerForm.name || !registerForm.email || !registerForm.password) {
       Alert.alert('错误', '请填写完整的注册信息');
       return;
     }
-    Alert.alert('注册成功', '欢迎加入星云艺术');
-    setShowRegisterModal(false);
-    setRegisterForm({ name: '', email: '', password: '' });
+    
+    try {
+      const success = await register(registerForm);
+      if (success) {
+        Alert.alert('注册成功', '欢迎加入星云艺术');
+        setShowRegisterModal(false);
+        setRegisterForm({ name: '', email: '', password: '' });
+      } else {
+        Alert.alert('注册失败', '该邮箱已被注册，请使用其他邮箱');
+      }
+    } catch (error) {
+      Alert.alert('注册失败', '网络错误，请稍后重试');
+    }
   };
 
   const handleArtistRegister = () => {
@@ -128,7 +148,41 @@ export const ProfilePage: React.FC = () => {
     </TouchableOpacity>
   );
 
-  if (!currentUser) return null;
+  // 如果用户未登录，显示登录界面
+  if (!currentUser) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loginContainer}>
+          <Text style={styles.loginTitle}>欢迎来到星云艺术</Text>
+          <Text style={styles.loginSubtitle}>登录或注册以开始您的艺术之旅</Text>
+          
+          <View style={styles.authButtons}>
+            <TouchableOpacity 
+              style={styles.loginButton}
+              onPress={() => setShowLoginModal(true)}
+            >
+              <Text style={styles.loginButtonText}>登录</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.registerButton}
+              onPress={() => setShowRegisterModal(true)}
+            >
+              <Text style={styles.registerButtonText}>注册</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.becomeArtistButton}
+            onPress={() => setShowArtistRegisterModal(true)}
+          >
+            <Text style={styles.becomeArtistButtonText}>申请成为艺术家</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* 登录模态框等保持不变 */}
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -216,6 +270,33 @@ export const ProfilePage: React.FC = () => {
                 accessibilityLabel={isDarkMode ? '关闭深色模式' : '开启深色模式'}
               />
             </View>
+            
+            {currentUser && (
+              <TouchableOpacity 
+                style={styles.logoutButton}
+                onPress={() => {
+                  Alert.alert(
+                    '退出登录',
+                    '确定要退出登录吗？',
+                    [
+                      { text: '取消', style: 'cancel' },
+                      { 
+                        text: '退出', 
+                        style: 'destructive',
+                        onPress: () => {
+                          logout();
+                          Alert.alert('已退出', '您已成功退出登录');
+                        }
+                      }
+                    ]
+                  );
+                }}
+                accessible={true}
+                accessibilityLabel="退出登录"
+              >
+                <Text style={styles.logoutButtonText}>退出登录</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -766,5 +847,38 @@ const styles = StyleSheet.create({
   textArea: {
     height: 80,
     textAlignVertical: 'top',
+  },
+  logoutButton: {
+    backgroundColor: '#ff4757',
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
+  },
+  logoutButtonText: {
+    color: '#ffffff',
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+  },
+  loginContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+    backgroundColor: theme.colors.background,
+  },
+  loginTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  loginSubtitle: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
   },
 });

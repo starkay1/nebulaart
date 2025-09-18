@@ -4,7 +4,7 @@ const path = require('path');
 module.exports = async function (env, argv) {
   const config = await createExpoWebpackConfigAsync(env, argv);
   
-  // Add static file serving for images
+  // Add static file serving for images and icons
   config.devServer = {
     ...config.devServer,
     static: [
@@ -14,6 +14,8 @@ module.exports = async function (env, argv) {
       },
     ],
   };
+
+  // Expo will handle favicon automatically
 
   // Ensure react-native-svg works on web by aliasing to react-native-svg-web
   config.resolve = config.resolve || {};

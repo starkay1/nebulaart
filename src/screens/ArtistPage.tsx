@@ -101,14 +101,12 @@ export const ArtistPage: React.FC<any> = ({ route, navigation }) => {
           <View style={styles.artistInfo}>
             <View style={styles.avatarContainer}>
               <Image
-                source={artist.name === '杨西屏' 
-                  ? { uri: './images/artists/yangxiping_avatar.jpg' }
-                  : artist.name === '王正春'
-                  ? { uri: './images/artists/wangzhengchun_avatar.jpg' }
-                  : { uri: './images/artists/yangxiping_avatar.jpg' }
-                }
+                source={{ uri: artist.avatar }}
                 style={styles.avatar}
                 resizeMode="cover"
+                onError={(error) => {
+                  console.log('Avatar loading error:', error);
+                }}
               />
             </View>
             <Text style={styles.artistName}>{artist.name}</Text>
