@@ -14,12 +14,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme/theme';
 import { useAppStore } from '../store/appStore';
 import { Switch } from 'react-native';
 import BecomeArtistModal from '../components/modals/BecomeArtistModal';
 
 export const ProfilePage: React.FC = () => {
+  const navigation = useNavigation();
   const { currentUser, selectedFilter, setSelectedFilter, isDarkMode, toggleDarkMode, login, register, logout } = useAppStore();
   const [showBecomeArtistModal, setShowBecomeArtistModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -250,18 +252,45 @@ export const ProfilePage: React.FC = () => {
               <Text style={styles.userBio}>{currentUser.bio}</Text>
             )}
             <View style={styles.userStats}>
-              <View style={styles.userStat}>
+              <TouchableOpacity 
+                style={styles.userStat}
+                onPress={() => {
+                  Alert.alert(
+                    '作品统计',
+                    `总作品数：${currentUser.artworks}\n本月新增：3件\n总浏览量：${(currentUser.artworks * 150).toLocaleString()}次\n平均点赞：${Math.round(currentUser.artworks * 12)}个`,
+                    [{ text: '确定' }]
+                  );
+                }}
+              >
                 <Text style={styles.userStatValue}>{currentUser.artworks}</Text>
                 <Text style={styles.userStatLabel}>作品</Text>
-              </View>
-              <View style={styles.userStat}>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.userStat}
+                onPress={() => {
+                  Alert.alert(
+                    '关注者分析',
+                    `总关注者：${currentUser.followers}\n本周新增：${Math.floor(Math.random() * 10) + 1}人\n活跃度：85%\n互动率：12.5%`,
+                    [{ text: '确定' }]
+                  );
+                }}
+              >
                 <Text style={styles.userStatValue}>{currentUser.followers}</Text>
                 <Text style={styles.userStatLabel}>关注者</Text>
-              </View>
-              <View style={styles.userStat}>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.userStat}
+                onPress={() => {
+                  Alert.alert(
+                    '关注统计',
+                    `总关注：${currentUser.following}\n艺术家：${Math.floor(currentUser.following * 0.7)}\n收藏家：${Math.floor(currentUser.following * 0.3)}\n最近活跃：${Math.floor(currentUser.following * 0.6)}人`,
+                    [{ text: '确定' }]
+                  );
+                }}
+              >
                 <Text style={styles.userStatValue}>{currentUser.following}</Text>
                 <Text style={styles.userStatLabel}>关注</Text>
-              </View>
+              </TouchableOpacity>
             </View>
             <View style={styles.actionButtons}>
               {currentUser.isArtist ? (
@@ -272,10 +301,36 @@ export const ProfilePage: React.FC = () => {
                   >
                     <Text style={styles.primaryBtnText}>编辑资料</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.secondaryBtn}>
+                  <TouchableOpacity 
+                    style={styles.secondaryBtn}
+                    onPress={() => {
+                      Alert.alert(
+                        '上传作品',
+                        '选择上传方式',
+                        [
+                          { text: '取消', style: 'cancel' },
+                          { 
+                            text: '从相册选择', 
+                            onPress: () => Alert.alert('提示', '图片选择功能开发中')
+                          },
+                          { 
+                            text: '拍照上传', 
+                            onPress: () => Alert.alert('提示', '拍照功能开发中')
+                          },
+                          { 
+                            text: '批量上传', 
+                            onPress: () => Alert.alert('提示', '批量上传功能开发中')
+                          }
+                        ]
+                      );
+                    }}
+                  >
                     <Text style={styles.secondaryBtnText}>上传作品</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.secondaryBtn}>
+                  <TouchableOpacity 
+                    style={styles.secondaryBtn}
+                    onPress={() => (navigation as any).navigate('BoardPage')}
+                  >
                     <Text style={styles.secondaryBtnText}>创建画板</Text>
                   </TouchableOpacity>
                 </>

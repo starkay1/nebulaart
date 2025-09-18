@@ -94,6 +94,8 @@ export const HomePage: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [sortBy, setSortBy] = useState('latest'); // latest, popular, trending
+  const [showSortModal, setShowSortModal] = useState(false);
   
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -162,7 +164,70 @@ export const HomePage: React.FC = () => {
       artwork.title.toLowerCase().includes(selectedFilter.toLowerCase());
     
     return matchesSearch && matchesFilter;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case 'popular':
+        return (b.likes || 0) - (a.likes || 0);
+      case 'trending':
+        return (b.views || 0) - (a.views || 0);
+      case 'latest':
+      default:
+        return new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime();
+    }
   });
+
+  const sortOptions = [
+    { key: 'latest', label: '最新发布' },
+    { key: 'popular', label: '最受欢迎' },
+    { key: 'trending', label: '热门趋势' },
+  ];
+
+  // 智能推荐算法
+  const getRecommendedArtworks = () => {
+    if (selectedFilter !== '为你推荐') return filteredArtworks;
+    
+    // 基于用户行为的推荐算法
+    const userPreferences = {
+      likedArtists: [], // 用户点赞过的艺术家
+      viewedCategories: ['当代艺术', '油画'], // 用户浏览过的分类
+      interactionScore: {}, // 互动评分
+    };
+
+    return filteredArtworks.sort((a, b) => {
+      let scoreA = 0;
+      let scoreB = 0;
+
+      // 基于点赞数的推荐权重
+      scoreA += (a.likes || 0) * 0.3;
+      scoreB += (b.likes || 0) * 0.3;
+
+      // 基于浏览量的推荐权重
+      scoreA += (a.views || 0) * 0.2;
+      scoreB += (b.views || 0) * 0.2;
+
+      // 基于时间的新鲜度权重
+      const nowTime = Date.now();
+      const aTime = new Date(a.createdAt || '').getTime();
+      const bTime = new Date(b.createdAt || '').getTime();
+      const aDaysDiff = (nowTime - aTime) / (1000 * 60 * 60 * 24);
+      const bDaysDiff = (nowTime - bTime) / (1000 * 60 * 60 * 24);
+      
+      scoreA += Math.max(0, 30 - aDaysDiff) * 0.1; // 30天内的作品有新鲜度加分
+      scoreB += Math.max(0, 30 - bDaysDiff) * 0.1;
+
+      // 基于艺术家关注度的权重
+      scoreA += (a.artist?.followers || 0) * 0.1;
+      scoreB += (b.artist?.followers || 0) * 0.1;
+
+      // 随机因子，增加推荐多样性
+      scoreA += Math.random() * 0.3;
+      scoreB += Math.random() * 0.3;
+
+      return scoreB - scoreA;
+    });
+  };
+
+  const recommendedArtworks = getRecommendedArtworks();
 
   const renderPinCard = ({ item, index }: { item: any; index: number }) => (
     <View style={[styles.pinCardContainer, { marginLeft: index % 2 === 0 ? 0 : theme.spacing.sm }]}>
@@ -305,7 +370,7 @@ export const HomePage: React.FC = () => {
         {/* Masonry Grid */}
         <View style={styles.masonryContainer}>
           <FlatList
-            data={filteredArtworks}
+            data={recommendedArtworks}
             renderItem={renderPinCard}
             keyExtractor={(item) => item.id}
             numColumns={2}

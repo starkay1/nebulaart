@@ -85,10 +85,22 @@ export const ArtistHubPage: React.FC = () => {
   const { artists } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [sortBy, setSortBy] = useState('name'); // name, followers, artworks
+
   const filteredArtists = artists.filter((artist) =>
     artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (artist.bio && artist.bio.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  ).sort((a, b) => {
+    switch (sortBy) {
+      case 'followers':
+        return (b.stats?.followers || 0) - (a.stats?.followers || 0);
+      case 'artworks':
+        return (b.stats?.artworks || 0) - (a.stats?.artworks || 0);
+      case 'name':
+      default:
+        return a.name.localeCompare(b.name);
+    }
+  });
 
   const renderArtistCard = ({ item }: { item: any }) => (
     <ArtistCard

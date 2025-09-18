@@ -94,10 +94,41 @@ const ArtworkDetailPage: React.FC<ArtworkDetailPageProps> = ({
       Alert.alert('提示', '请输入评论内容');
       return;
     }
-    
+
     addComment(artworkId, commentText.trim());
     setCommentText('');
-    Alert.alert('成功', '评论发布成功');
+    Alert.alert('成功', '评论发表成功');
+  };
+
+  const handleReplyComment = (commentId: string, userName: string) => {
+    Alert.alert(
+      '回复评论',
+      `回复 @${userName}`,
+      [
+        { text: '取消', style: 'cancel' },
+        { 
+          text: '回复', 
+          onPress: () => {
+            setCommentText(`@${userName} `);
+            Alert.alert('提示', '评论回复功能开发中');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleMentionUser = (userName: string) => {
+    Alert.alert(
+      '提及用户',
+      `@${userName}`,
+      [
+        { text: '取消', style: 'cancel' },
+        { 
+          text: '查看资料', 
+          onPress: () => Alert.alert('提示', '用户资料页面开发中')
+        }
+      ]
+    );
   };
 
   const handleCommentLike = (commentId: string) => {

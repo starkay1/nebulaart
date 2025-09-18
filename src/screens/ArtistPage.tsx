@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
-  FlatList,
+  StyleSheet,
   Image,
+  Dimensions,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -138,7 +139,22 @@ export const ArtistPage: React.FC<any> = ({ route, navigation }) => {
                   {artist.isFollowing ? '已关注' : '关注'}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.secondaryBtn}>
+              <TouchableOpacity 
+                style={styles.secondaryBtn}
+                onPress={() => {
+                  Alert.alert(
+                    '发送私信',
+                    `向 ${artist.name} 发送私信`,
+                    [
+                      { text: '取消', style: 'cancel' },
+                      { 
+                        text: '发送消息', 
+                        onPress: () => Alert.alert('提示', '私信功能开发中，敬请期待！')
+                      }
+                    ]
+                  );
+                }}
+              >
                 <Text style={styles.secondaryBtnText}>私信</Text>
               </TouchableOpacity>
               <TouchableOpacity 

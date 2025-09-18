@@ -17,9 +17,12 @@ import { useAppStore, Board } from '../store/appStore';
 import { PlusIcon, CloseIcon } from '../components/icons';
 
 export const BoardPage: React.FC = () => {
-  const { boards, currentUser, createBoard, artworks } = useAppStore();
+  const { boards, currentUser, createBoard, artworks, addArtworkToBoard, removeArtworkFromBoard } = useAppStore();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [boardName, setBoardName] = useState('');
+  const [showAddArtworkModal, setShowAddArtworkModal] = useState(false);
+  const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
+  const [showBoardOptions, setShowBoardOptions] = useState<string | null>(null);
 
   const handleCreateBoard = () => {
     if (!boardName.trim()) {
@@ -41,11 +44,71 @@ export const BoardPage: React.FC = () => {
     return firstArtwork?.image || '';
   };
 
+  const handleAddArtwork = (boardId: string, artworkId: string) => {
+    if (addArtworkToBoard) {
+      addArtworkToBoard(boardId, artworkId);
+      Alert.alert('成功', '作品已添加到画板');
+    }
+  };
+
+  const handleRemoveArtwork = (boardId: string, artworkId: string) => {
+    Alert.alert(
+      '确认删除',
+      '确定要从画板中移除这件作品吗？',
+      [
+        { text: '取消', style: 'cancel' },
+        { 
+          text: '删除', 
+          style: 'destructive',
+          onPress: () => {
+            if (removeArtworkFromBoard) {
+              removeArtworkFromBoard(boardId, artworkId);
+              Alert.alert('成功', '作品已从画板中移除');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleBoardOptions = (board: Board) => {
+    Alert.alert(
+      board.name,
+      '选择操作',
+      [
+        { text: '取消', style: 'cancel' },
+        { 
+          text: '添加作品', 
+          onPress: () => {
+            setSelectedBoard(board);
+            setShowAddArtworkModal(true);
+          }
+        },
+        { 
+          text: '编辑画板', 
+          onPress: () => {
+            Alert.alert('提示', '编辑功能开发中');
+          }
+        },
+        { 
+          text: '删除画板', 
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('提示', '删除功能开发中');
+          }
+        }
+      ]
+    );
+  };
+
   const renderBoardItem = ({ item }: { item: Board }) => {
     const coverImage = getBoardCoverImage(item);
 
     return (
-      <TouchableOpacity style={styles.boardCard}>
+      <TouchableOpacity 
+        style={styles.boardCard}
+        onLongPress={() => handleBoardOptions(item)}
+      >
         <View style={styles.boardImageContainer}>
           {coverImage ? (
             <Image

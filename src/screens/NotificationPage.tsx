@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Alert,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'react-native';
@@ -13,12 +15,58 @@ import { theme } from '../theme/theme';
 import { useAppStore, Notification } from '../store/appStore';
 
 export const NotificationPage: React.FC = () => {
-  const { notifications, markNotificationAsRead } = useAppStore();
+  const { notifications, markNotificationAsRead, clearAllNotifications } = useAppStore();
+  const [selectedFilter, setSelectedFilter] = useState('all');
+
+  const notificationFilters = [
+    { key: 'all', label: '全部' },
+    { key: 'follow', label: '关注' },
+    { key: 'like', label: '点赞' },
+    { key: 'comment', label: '评论' },
+    { key: 'share', label: '分享' },
+  ];
+
+  const filteredNotifications = notifications.filter(notification => {
+    if (selectedFilter === 'all') return true;
+    return notification.type === selectedFilter;
+  });
 
   const handleNotificationPress = (notification: Notification) => {
     if (!notification.isRead) {
       markNotificationAsRead(notification.id);
     }
+    
+    // 根据通知类型跳转到相应页面
+    // 这里可以添加导航逻辑
+    console.log('Navigate to:', notification.type, notification.relatedId);
+  };
+
+  const handleClearAll = () => {
+    Alert.alert(
+      '清空通知',
+      '确定要清空所有通知吗？',
+      [
+        { text: '取消', style: 'cancel' },
+        { 
+          text: '清空', 
+          style: 'destructive',
+          onPress: () => {
+            if (clearAllNotifications) {
+              clearAllNotifications();
+              Alert.alert('成功', '所有通知已清空');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleMarkAllRead = () => {
+    const unreadNotifications = notifications.filter(n => !n.isRead);
+    unreadNotifications.forEach(notification => {
+      markNotificationAsRead(notification.id);
+    });
+    Alert.alert('成功', '所有通知已标记为已读');
   };
 
   const getNotificationIcon = (type: string) => {
