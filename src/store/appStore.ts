@@ -82,6 +82,7 @@ interface AppState {
   // Notifications
   addNotification: (notificationData: any) => void;
   markNotificationAsRead: (notificationId: string) => void;
+  clearAllNotifications: () => void;
   
   // Data management
   loadMoreArtworks: () => Promise<void>;
@@ -324,9 +325,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     const newBoard: Board = {
       id: `board_${Date.now()}`,
       name,
-      artworks: [],
+      userId: state.currentUser?.id || 'user1',
+      artworkIds: [],
+      coverImage: null,
       createdAt: new Date().toISOString(),
-      isPrivate: false,
     };
     
     set({ boards: [...state.boards, newBoard] });
@@ -335,8 +337,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   addArtworkToBoard: (boardId: string, artworkId: string) => {
     const state = get();
     const updatedBoards = state.boards.map(board => 
-      board.id === boardId && !board.artworks.includes(artworkId)
-        ? { ...board, artworks: [...board.artworks, artworkId] }
+      board.id === boardId && !board.artworkIds.includes(artworkId)
+        ? { ...board, artworkIds: [...board.artworkIds, artworkId] }
         : board
     );
     set({ boards: updatedBoards });
@@ -346,7 +348,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const state = get();
     const updatedBoards = state.boards.map(board => 
       board.id === boardId
-        ? { ...board, artworks: board.artworks.filter(id => id !== artworkId) }
+        ? { ...board, artworkIds: board.artworkIds.filter((id: string) => id !== artworkId) }
         : board
     );
     set({ boards: updatedBoards });
@@ -438,6 +440,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     );
     
     set({ notifications: updatedNotifications });
+  },
+
+  clearAllNotifications: () => {
+    set({ notifications: [] });
   },
 
   // Data management

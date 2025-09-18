@@ -108,7 +108,6 @@ export interface Board {
   id: string;
   name: string;
   userId: string;
-  artworks: string[];
   artworkIds: string[];
   coverImage: string | null;
   createdAt: string;
