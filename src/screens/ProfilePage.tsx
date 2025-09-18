@@ -36,6 +36,12 @@ export const ProfilePage: React.FC = () => {
     portfolio: '' 
   });
   const [userArtworks, setUserArtworks] = useState<any[]>([]);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: currentUser?.name || '',
+    bio: currentUser?.bio || '',
+    location: currentUser?.location || '',
+  });
   const filters = ['作品', '收藏', '画板'];
 
   useEffect(() => {
@@ -131,6 +137,36 @@ export const ProfilePage: React.FC = () => {
     setArtistRegisterForm({ name: '', email: '', password: '', artStyle: '', bio: '', portfolio: '' });
   };
 
+  const handleEditProfile = () => {
+    if (!editForm.name.trim()) {
+      Alert.alert('错误', '请输入姓名');
+      return;
+    }
+
+    // 这里应该调用API更新用户信息
+    // 暂时只更新本地状态
+    Alert.alert('成功', '个人资料已更新');
+    setShowEditProfile(false);
+  };
+
+  const handleAvatarPress = () => {
+    Alert.alert(
+      '更换头像',
+      '选择头像来源',
+      [
+        { text: '取消', style: 'cancel' },
+        { text: '相册选择', onPress: () => {
+          // 这里应该实现图片选择功能
+          Alert.alert('提示', '图片上传功能开发中');
+        }},
+        { text: '拍照', onPress: () => {
+          // 这里应该实现拍照功能
+          Alert.alert('提示', '拍照功能开发中');
+        }},
+      ]
+    );
+  };
+
   const renderArtwork = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.artworkCard}>
       <Image 
@@ -198,14 +234,17 @@ export const ProfilePage: React.FC = () => {
             />
           </View>
           <View style={styles.profileInfo}>
-            <View style={styles.avatarContainer}>
+            <TouchableOpacity 
+              style={styles.avatarContainer}
+              onPress={handleAvatarPress}
+            >
               <LinearGradient
                 colors={[...theme.gradients.primary]}
                 style={styles.avatar}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               />
-            </View>
+            </TouchableOpacity>
             <Text style={styles.userName}>{currentUser.name}</Text>
             {currentUser.bio && (
               <Text style={styles.userBio}>{currentUser.bio}</Text>
@@ -227,7 +266,10 @@ export const ProfilePage: React.FC = () => {
             <View style={styles.actionButtons}>
               {currentUser.isArtist ? (
                 <>
-                  <TouchableOpacity style={styles.primaryBtn}>
+                  <TouchableOpacity 
+                    style={styles.primaryBtn}
+                    onPress={() => setShowEditProfile(true)}
+                  >
                     <Text style={styles.primaryBtnText}>编辑资料</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.secondaryBtn}>

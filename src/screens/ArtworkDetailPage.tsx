@@ -61,16 +61,22 @@ const ArtworkDetailPage: React.FC<ArtworkDetailPageProps> = ({
 
   const handleShare = async () => {
     try {
-      // Web fallback for sharing
-      if (navigator.share) {
-        await navigator.share({
-          title: artwork.title,
-          text: `查看${artwork.artist.name}的作品「${artwork.title}」`,
-          url: window.location.href,
-        });
-      } else {
-        // Fallback: copy to clipboard
-        await navigator.clipboard.writeText(window.location.href);
+      if (artwork) {
+        const shareData = {
+          title: `${artwork.title} - ${artwork.artist.name}`,
+          text: `来看看这个精彩的艺术作品：${artwork.title}，作者：${artwork.artist.name}`,
+          url: `https://nebulaart.pages.dev/artwork/${artwork.id}`,
+        };
+
+        if (navigator.share) {
+          // 使用原生分享API
+          await navigator.share(shareData);
+        } else {
+          // 复制到剪贴板作为备选方案
+          const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+          await navigator.clipboard.writeText(shareText);
+          Alert.alert('已复制', '作品链接已复制到剪贴板');
+        }
         Alert.alert('已复制', '链接已复制到剪贴板');
       }
     } catch (error) {

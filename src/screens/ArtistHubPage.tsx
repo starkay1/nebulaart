@@ -24,10 +24,11 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onPress }) => {
   const { toggleFollow } = useAppStore();
 
   const getAvatarPath = (artistName: string) => {
+    // 使用CDN URL替代本地路径
     if (artistName === '杨西屏') {
-      return '/images/artists/yangxiping_avatar.jpg';
+      return 'https://picsum.photos/120/120?random=6';
     } else if (artistName === '王正春') {
-      return '/images/artists/wangzhengchun_avatar.jpg';
+      return 'https://picsum.photos/120/120?random=7';
     }
     return artist.avatar;
   };
@@ -81,14 +82,12 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onPress }) => {
 
 export const ArtistHubPage: React.FC = () => {
   const navigation = useNavigation();
-  const { artists, selectedFilter, setSelectedFilter } = useAppStore();
+  const { artists } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
-
-  const filters = ['全部', '水墨', '油画', '新媒体', '雕塑', '摄影'];
 
   const filteredArtists = artists.filter((artist) =>
     artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    artist.location?.toLowerCase().includes(searchQuery.toLowerCase())
+    (artist.bio && artist.bio.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const renderArtistCard = ({ item }: { item: any }) => (

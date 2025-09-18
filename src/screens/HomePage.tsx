@@ -11,6 +11,7 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -91,6 +92,8 @@ export const HomePage: React.FC = () => {
   } = useAppStore();
   
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -126,8 +129,10 @@ export const HomePage: React.FC = () => {
     <StoryItem
       story={item}
       onPress={() => {
-        // Navigate to story or curation detail
-        console.log('Story pressed:', item.user.name);
+        // Navigate to artist page
+        if (item.user.id !== 'user1') {
+          (navigation as any).navigate('ArtistPage', { artistId: item.user.id });
+        }
       }}
     />
   );
@@ -143,6 +148,21 @@ export const HomePage: React.FC = () => {
       loadMoreArtworks();
     }
   };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const filteredArtworks = artworks.filter(artwork => {
+    const matchesSearch = searchQuery === '' || 
+      artwork.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      artwork.artist.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesFilter = selectedFilter === '为你推荐' || selectedFilter === '全部' ||
+      artwork.title.toLowerCase().includes(selectedFilter.toLowerCase());
+    
+    return matchesSearch && matchesFilter;
+  });
 
   const renderPinCard = ({ item, index }: { item: any; index: number }) => (
     <View style={[styles.pinCardContainer, { marginLeft: index % 2 === 0 ? 0 : theme.spacing.sm }]}>
@@ -184,11 +204,28 @@ export const HomePage: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.logo}>Nebula</Text>
-        <View style={styles.searchBar}>
+        <TouchableOpacity 
+          style={styles.searchBar}
+          onPress={() => setShowSearch(!showSearch)}
+        >
           <SearchIcon size={20} color={theme.colors.textSecondary} />
-          <Text style={styles.searchPlaceholder}>搜索艺术作品、艺术家</Text>
-        </View>
-        <TouchableOpacity style={styles.iconBtn}>
+          {showSearch ? (
+            <TextInput
+              style={styles.searchInput}
+              placeholder="搜索艺术作品、艺术家"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              autoFocus
+              onBlur={() => setShowSearch(false)}
+            />
+          ) : (
+            <Text style={styles.searchPlaceholder}>搜索艺术作品、艺术家</Text>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.iconBtn}
+          onPress={() => (navigation as any).navigate('NotificationPage')}
+        >
           <NotificationIcon size={20} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
@@ -268,7 +305,7 @@ export const HomePage: React.FC = () => {
         {/* Masonry Grid */}
         <View style={styles.masonryContainer}>
           <FlatList
-            data={artworks}
+            data={filteredArtworks}
             renderItem={renderPinCard}
             keyExtractor={(item) => item.id}
             numColumns={2}
@@ -319,6 +356,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: theme.fontSize.base,
     color: theme.colors.textLight,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: theme.fontSize.base,
+    color: theme.colors.text,
+    paddingVertical: 0,
   },
   iconBtn: {
     width: 40,

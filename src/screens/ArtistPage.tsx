@@ -141,7 +141,28 @@ export const ArtistPage: React.FC<any> = ({ route, navigation }) => {
               <TouchableOpacity style={styles.secondaryBtn}>
                 <Text style={styles.secondaryBtnText}>私信</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconBtn}>
+              <TouchableOpacity 
+                style={styles.iconBtn}
+                onPress={async () => {
+                  try {
+                    const shareData = {
+                      title: `${artist.name} - 艺术家`,
+                      text: `来认识这位优秀的艺术家：${artist.name}`,
+                      url: `https://nebulaart.pages.dev/artist/${artist.id}`,
+                    };
+
+                    if (navigator.share) {
+                      await navigator.share(shareData);
+                    } else {
+                      const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+                      await navigator.clipboard.writeText(shareText);
+                      alert('艺术家链接已复制到剪贴板');
+                    }
+                  } catch (error) {
+                    console.error('Share error:', error);
+                  }
+                }}
+              >
                 <ShareIcon size={20} color={theme.colors.text} />
               </TouchableOpacity>
             </View>

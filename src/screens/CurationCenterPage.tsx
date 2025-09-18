@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { SearchIcon, FilterIcon } from '../components/icons';
 export const CurationCenterPage: React.FC = () => {
   const navigation = useNavigation();
   const { artists, artworks } = useAppStore();
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Create exhibition data using real artists
   const exhibitions = [
@@ -27,7 +28,7 @@ export const CurationCenterPage: React.FC = () => {
       description: '展现传统与现代融合的艺术魅力，探索中国山水画的当代表达。',
       artist: artists.find(a => a.id === 'artist1'),
       artworks: artworks.filter(a => a.artist.id === 'artist1'),
-      coverImage: '/images/curations/yangxiping_retrospective.jpg',
+      coverImage: 'https://picsum.photos/400/300?random=201',
       views: 3200,
       likes: 156,
     },
@@ -38,7 +39,7 @@ export const CurationCenterPage: React.FC = () => {
       description: '当代艺术的新视角，用现代手法诠释传统文化内涵。',
       artist: artists.find(a => a.id === 'artist2'),
       artworks: artworks.filter(a => a.artist.id === 'artist2'),
-      coverImage: '/images/curations/wangzhengchun_contemporary.jpg',
+      coverImage: 'https://picsum.photos/400/300?random=202',
       views: 2800,
       likes: 128,
     },
@@ -49,11 +50,17 @@ export const CurationCenterPage: React.FC = () => {
       description: '汇聚新生代艺术家的创新作品，展现当代艺术的多元化发展。',
       artist: null,
       artworks: artworks.slice(0, 8),
-      coverImage: '/images/curations/emerging_artists_group.jpg',
+      coverImage: 'https://picsum.photos/400/300?random=203',
       views: 1950,
       likes: 89,
     },
   ];
+
+  const filteredExhibitions = exhibitions.filter(exhibition =>
+    exhibition.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    exhibition.curator.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    exhibition.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -82,16 +89,11 @@ export const CurationCenterPage: React.FC = () => {
                 style={styles.featuredCard}
                 onPress={() => {
                   console.log('Navigating to curation:', exhibition.id);
-                  (navigation as any).navigate('CurationDetail', { curationId: exhibition.id });
+                  (navigation as any).navigate('CurationDetailPage', { curationId: exhibition.id });
                 }}
               >
                 <Image 
-                  source={exhibition.id === 'exhibition1' 
-                    ? { uri: './images/curations/yangxiping_retrospective_small.jpg' }
-                    : exhibition.id === 'exhibition2'
-                    ? { uri: './images/curations/wangzhengchun_contemporary.jpg' }
-                    : { uri: './images/curations/emerging_artists_group.jpg' }
-                  }
+                  source={{ uri: exhibition.coverImage }}
                   style={styles.featuredImage}
                   resizeMode="cover"
                 />
