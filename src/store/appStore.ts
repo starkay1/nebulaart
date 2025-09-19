@@ -165,7 +165,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         ? { 
             ...artist, 
             isFollowing: !isCurrentlyFollowing,
-            followers: isCurrentlyFollowing ? artist.followers - 1 : artist.followers + 1
+            stats: {
+              ...artist.stats,
+              followers: isCurrentlyFollowing ? artist.stats.followers - 1 : artist.stats.followers + 1
+            }
           }
         : artist
     );
@@ -190,20 +193,47 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       set({ isLoading: true });
 
-      // 并行加载所有数据
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
+
+      // 安全的API调用函数
+      const safeApiCall = async (url: string, fallbackData: any[] = []) => {
+        try {
+          const response = await fetch(url, { 
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          return Array.isArray(data) ? data : fallbackData;
+        } catch (error: any) {
+          console.warn(`API call failed for ${url}:`, error.message);
+          return fallbackData;
+        }
+      };
+
+      // 并行加载所有数据，每个都有独立的错误处理
       const [artworksResponse, artistsResponse, curationsResponse] = await Promise.all([
-        fetch('https://nebulaart-api.onrender.com/api/artworks').then(r => r.json()).catch(() => []),
-        fetch('https://nebulaart-api.onrender.com/api/artists').then(r => r.json()).catch(() => []),
-        fetch('https://nebulaart-api.onrender.com/api/curations').then(r => r.json()).catch(() => [])
+        safeApiCall('https://nebulaart-api.onrender.com/api/artworks', []),
+        safeApiCall('https://nebulaart-api.onrender.com/api/artists', []),
+        safeApiCall('https://nebulaart-api.onrender.com/api/curations', [])
       ]);
 
-      // 生成stories数据
-      const stories: Story[] = artistsResponse.slice(0, 3).map((artist: Artist, index: number) => ({
-        id: `story${index + 1}`,
-        user: { id: artist.id, name: artist.name, avatar: artist.avatar },
-        hasUpdate: index === 0,
-        gradient: index === 0 ? ['#667eea', '#764ba2'] : ['#f093fb', '#f5576c'],
-      }));
+      clearTimeout(timeoutId);
+
+      // 生成stories数据，确保有足够的艺术家数据
+      const stories: Story[] = artistsResponse.length > 0 
+        ? artistsResponse.slice(0, 3).map((artist: Artist, index: number) => ({
+            id: `story${index + 1}`,
+            user: { id: artist.id, name: artist.name, avatar: artist.avatar },
+            hasUpdate: index === 0,
+            gradient: index === 0 ? ['#667eea', '#764ba2'] : ['#f093fb', '#f5576c'],
+          }))
+        : []; // 如果没有艺术家数据，返回空数组
 
       set({
         stories,
@@ -213,9 +243,33 @@ export const useAppStore = create<AppState>((set, get) => ({
         allUsers: artistsResponse,
         isLoading: false,
       });
-    } catch (error) {
+
+      // 记录加载成功的数据量
+      console.log(`Data loaded successfully: ${artworksResponse.length} artworks, ${artistsResponse.length} artists, ${curationsResponse.length} curations`);
+
+    } catch (error: any) {
       console.error('Failed to load initial data:', error);
-      set({ isLoading: false });
+      
+      // 提供用户友好的错误信息
+      let errorMessage = '数据加载失败';
+      
+      if (error.name === 'AbortError') {
+        errorMessage = '数据加载超时，请检查网络连接';
+      } else if (!navigator.onLine) {
+        errorMessage = '网络连接已断开，请检查网络设置';
+      }
+      
+      console.error('User-friendly error:', errorMessage);
+      
+      // 设置默认的空数据状态，确保应用仍可使用
+      set({
+        stories: [],
+        artworks: [],
+        artists: [],
+        curations: [],
+        allUsers: [],
+        isLoading: false,
+      });
     }
   },
 
@@ -452,15 +506,53 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ isLoading: true });
     
     try {
-      const response = await fetch(`https://nebulaart-api.onrender.com/api/artworks?offset=${state.artworks.length}&limit=20`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+      
+      const response = await fetch(
+        `https://nebulaart-api.onrender.com/api/artworks?offset=${state.artworks.length}&limit=20`,
+        { 
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const newArtworks = await response.json();
+      
+      if (!Array.isArray(newArtworks)) {
+        throw new Error('Invalid response format: expected array');
+      }
       
       set({ 
         artworks: [...state.artworks, ...newArtworks],
-        isLoading: false
+        isLoading: false 
       });
-    } catch (error) {
-      console.error('Failed to load more artworks:', error);
+    } catch (error: any) {
+      console.error('Error loading artworks:', error);
+      
+      // 根据错误类型提供不同的用户反馈
+      let errorMessage = '加载失败，请稍后重试';
+      
+      if (error.name === 'AbortError') {
+        errorMessage = '请求超时，请检查网络连接';
+      } else if (error.message?.includes('HTTP error')) {
+        errorMessage = '服务器响应异常，请稍后重试';
+      } else if (!navigator.onLine) {
+        errorMessage = '网络连接已断开，请检查网络设置';
+      }
+      
+      // 这里可以添加全局错误通知机制
+      // 暂时使用console.error，后续可以改为toast通知
+      console.error('User-friendly error:', errorMessage);
+      
       set({ isLoading: false });
     }
   },

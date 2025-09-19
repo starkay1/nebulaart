@@ -61,43 +61,95 @@ const ArtworkDetailPage: React.FC<ArtworkDetailPageProps> = ({
 
   const handleShare = async () => {
     try {
-      if (artwork) {
-        const shareData = {
-          title: `${artwork.title} - ${artwork.artist.name}`,
-          text: `来看看这个精彩的艺术作品：${artwork.title}，作者：${artwork.artist.name}`,
-          url: `https://nebulaart.pages.dev/artwork/${artwork.id}`,
-        };
+      if (!artwork) {
+        Alert.alert('错误', '作品信息不完整，无法分享');
+        return;
+      }
 
-        if (navigator.share) {
+      const shareData = {
+        title: `${artwork.title} - ${artwork.artist.name}`,
+        text: `来看看这个精彩的艺术作品：${artwork.title}，作者：${artwork.artist.name}`,
+        url: `https://nebulaart.pages.dev/artwork/${artwork.id}`,
+      };
+
+      if (navigator.share) {
+        try {
           // 使用原生分享API
           await navigator.share(shareData);
-        } else {
-          // 复制到剪贴板作为备选方案
-          const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-          await navigator.clipboard.writeText(shareText);
-          Alert.alert('已复制', '作品链接已复制到剪贴板');
+          // 原生分享成功，不需要额外提示
+        } catch (shareError: any) {
+          // 用户取消分享或分享失败，降级到剪贴板
+          if (shareError.name !== 'AbortError') {
+            await fallbackToClipboard(shareData);
+          }
         }
-        Alert.alert('已复制', '链接已复制到剪贴板');
+      } else {
+        // 不支持原生分享，直接使用剪贴板
+        await fallbackToClipboard(shareData);
       }
     } catch (error) {
-      console.log('Share error:', error);
+      console.error('Share error:', error);
+      Alert.alert('分享失败', '请稍后重试或手动复制链接');
     }
   };
 
-  const handleAddComment = () => {
-    if (!currentUser) {
-      Alert.alert('提示', '请先登录后再评论');
-      return;
+  const fallbackToClipboard = async (shareData: any) => {
+    try {
+      const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareText);
+        Alert.alert('已复制', '作品链接已复制到剪贴板');
+      } else {
+        // 最后的降级方案：显示文本让用户手动复制
+        Alert.alert('分享内容', shareText, [
+          { text: '取消', style: 'cancel' },
+          { text: '好的', style: 'default' }
+        ]);
+      }
+    } catch (clipboardError) {
+      console.error('Clipboard error:', clipboardError);
+      Alert.alert('复制失败', '请手动复制分享内容');
     }
-    
-    if (!commentText.trim()) {
-      Alert.alert('提示', '请输入评论内容');
-      return;
-    }
+  };
 
-    addComment(artworkId, commentText.trim());
-    setCommentText('');
-    Alert.alert('成功', '评论发表成功');
+  const handleAddComment = async () => {
+    try {
+      if (!currentUser) {
+        Alert.alert('提示', '请先登录后再评论');
+        return;
+      }
+      
+      if (!commentText.trim()) {
+        Alert.alert('提示', '请输入评论内容');
+        return;
+      }
+
+      if (commentText.trim().length > 500) {
+        Alert.alert('提示', '评论内容不能超过500个字符');
+        return;
+      }
+
+      // 检查是否包含敏感内容（简单示例）
+      const sensitiveWords = ['spam', '垃圾', '广告'];
+      const hasSensitiveContent = sensitiveWords.some(word => 
+        commentText.toLowerCase().includes(word)
+      );
+
+      if (hasSensitiveContent) {
+        Alert.alert('提示', '评论内容包含不当信息，请修改后重试');
+        return;
+      }
+
+      // 添加评论
+      addComment(artworkId, commentText.trim());
+      setCommentText('');
+      Alert.alert('成功', '评论发表成功');
+      
+    } catch (error) {
+      console.error('Comment submission error:', error);
+      Alert.alert('发表失败', '评论发表失败，请稍后重试');
+    }
   };
 
   const handleReplyComment = (commentId: string, userName: string) => {

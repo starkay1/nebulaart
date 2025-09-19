@@ -12,11 +12,11 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '../theme/theme';
-import { useAppStore } from '../store/appStore';
+import { useAppStore, Artist } from '../store/appStore';
 import { SearchIcon } from '../components/icons';
 
 interface ArtistCardProps {
-  artist: any;
+  artist: Artist;
   onPress: () => void;
 }
 
@@ -87,10 +87,10 @@ export const ArtistHubPage: React.FC = () => {
 
   const [sortBy, setSortBy] = useState('name'); // name, followers, artworks
 
-  const filteredArtists = artists.filter((artist) =>
+  const filteredArtists = artists.filter((artist: Artist) =>
     artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (artist.bio && artist.bio.toLowerCase().includes(searchQuery.toLowerCase()))
-  ).sort((a, b) => {
+  ).sort((a: Artist, b: Artist) => {
     switch (sortBy) {
       case 'followers':
         return (b.stats?.followers || 0) - (a.stats?.followers || 0);
@@ -102,7 +102,7 @@ export const ArtistHubPage: React.FC = () => {
     }
   });
 
-  const renderArtistCard = ({ item }: { item: any }) => (
+  const renderArtistCard = ({ item }: { item: Artist }) => (
     <ArtistCard
       artist={item}
       onPress={() => (navigation as any).navigate('ArtistPage', { artistId: item.id })}

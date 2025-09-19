@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '../theme/theme';
-import { useAppStore } from '../store/appStore';
+import { useAppStore, Artwork } from '../store/appStore';
 import {
   SearchIcon,
   NotificationIcon,
@@ -155,7 +155,7 @@ export const HomePage: React.FC = () => {
     setSearchQuery(query);
   };
 
-  const filteredArtworks = artworks.filter(artwork => {
+  const filteredArtworks = artworks.filter((artwork: Artwork) => {
     const matchesSearch = searchQuery === '' || 
       artwork.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       artwork.artist.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -164,7 +164,7 @@ export const HomePage: React.FC = () => {
       artwork.title.toLowerCase().includes(selectedFilter.toLowerCase());
     
     return matchesSearch && matchesFilter;
-  }).sort((a, b) => {
+  }).sort((a: Artwork, b: Artwork) => {
     switch (sortBy) {
       case 'popular':
         return (b.likes || 0) - (a.likes || 0);
@@ -182,8 +182,19 @@ export const HomePage: React.FC = () => {
     { key: 'trending', label: '热门趋势' },
   ];
 
-  // 智能推荐算法
-  const getRecommendedArtworks = () => {
+  // 缓存随机因子，避免每次重新计算
+  const randomFactors = useMemo(() => {
+    return artworks.reduce((acc: Record<string, { artistScore: number; diversityScore: number }>, artwork: Artwork) => {
+      acc[artwork.id] = {
+        artistScore: Math.random() * 100 * 0.1,
+        diversityScore: Math.random() * 0.3
+      };
+      return acc;
+    }, {} as Record<string, { artistScore: number; diversityScore: number }>);
+  }, [artworks.length]); // 只有作品数量变化时才重新生成
+
+  // 智能推荐算法 - 使用useMemo优化性能
+  const recommendedArtworks = useMemo(() => {
     if (selectedFilter !== '为你推荐') return filteredArtworks;
     
     // 基于用户行为的推荐算法
@@ -193,7 +204,9 @@ export const HomePage: React.FC = () => {
       interactionScore: {}, // 互动评分
     };
 
-    return filteredArtworks.sort((a, b) => {
+    const nowTime = Date.now();
+
+    return [...filteredArtworks].sort((a: Artwork, b: Artwork) => {
       let scoreA = 0;
       let scoreB = 0;
 
@@ -206,7 +219,6 @@ export const HomePage: React.FC = () => {
       scoreB += (b.stats?.comments || 0) * 0.2;
 
       // 基于时间的新鲜度权重
-      const nowTime = Date.now();
       const aTime = new Date(a.createdAt || '').getTime();
       const bTime = new Date(b.createdAt || '').getTime();
       const aDaysDiff = (nowTime - aTime) / (1000 * 60 * 60 * 24);
@@ -215,21 +227,22 @@ export const HomePage: React.FC = () => {
       scoreA += Math.max(0, 30 - aDaysDiff) * 0.1; // 30天内的作品有新鲜度加分
       scoreB += Math.max(0, 30 - bDaysDiff) * 0.1;
 
-      // 基于艺术家关注度的权重（使用固定值模拟）
-      scoreA += Math.random() * 100 * 0.1;
-      scoreB += Math.random() * 100 * 0.1;
-
-      // 随机因子，增加推荐多样性
-      scoreA += Math.random() * 0.3;
-      scoreB += Math.random() * 0.3;
+      // 使用缓存的随机因子
+      const factorA = randomFactors[a.id];
+      const factorB = randomFactors[b.id];
+      
+      if (factorA) {
+        scoreA += factorA.artistScore + factorA.diversityScore;
+      }
+      if (factorB) {
+        scoreB += factorB.artistScore + factorB.diversityScore;
+      }
 
       return scoreB - scoreA;
     });
-  };
+  }, [filteredArtworks, selectedFilter, randomFactors]);
 
-  const recommendedArtworks = getRecommendedArtworks();
-
-  const renderPinCard = ({ item, index }: { item: any; index: number }) => (
+  const renderPinCard = useCallback(({ item, index }: { item: Artwork; index: number }) => (
     <View style={[styles.pinCardContainer, { marginLeft: index % 2 === 0 ? 0 : theme.spacing.sm }]}>
       <PinCard
         artwork={item}
@@ -245,7 +258,7 @@ export const HomePage: React.FC = () => {
         onBookmarkPress={() => toggleBookmark(item.id)}
       />
     </View>
-  );
+  ), [navigation, toggleLike, toggleBookmark]);
 
   const renderLoadMoreButton = () => {
     if (isLoading) {
@@ -376,6 +389,15 @@ export const HomePage: React.FC = () => {
             numColumns={2}
             scrollEnabled={false}
             contentContainerStyle={styles.masonryContent}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            initialNumToRender={6}
+            getItemLayout={(data, index) => ({
+              length: 280, // 估算的item高度
+              offset: 280 * Math.floor(index / 2),
+              index,
+            })}
           />
           
           {/* Load More Section */}

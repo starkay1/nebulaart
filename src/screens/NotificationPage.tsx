@@ -26,7 +26,7 @@ export const NotificationPage: React.FC = () => {
     { key: 'share', label: '分享' },
   ];
 
-  const filteredNotifications = notifications.filter(notification => {
+  const filteredNotifications = notifications.filter((notification: Notification) => {
     if (selectedFilter === 'all') return true;
     return notification.type === selectedFilter;
   });
@@ -62,8 +62,8 @@ export const NotificationPage: React.FC = () => {
   };
 
   const handleMarkAllRead = () => {
-    const unreadNotifications = notifications.filter(n => !n.isRead);
-    unreadNotifications.forEach(notification => {
+    const unreadNotifications = notifications.filter((n: Notification) => !n.isRead);
+    unreadNotifications.forEach((notification: Notification) => {
       markNotificationAsRead(notification.id);
     });
     Alert.alert('成功', '所有通知已标记为已读');
